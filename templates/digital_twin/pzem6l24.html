@@ -1,0 +1,705 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PZEM 6L24 Monitoring</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        overflow: hidden;
+        height: 100vh;
+        background: #1a1a1a;
+      }
+
+      .container {
+        display: flex;
+        width: 100%;
+        height: 100vh;
+      }
+
+      /* Panel Section (Left) */
+      .panel-section {
+        flex: 1;
+        position: relative;
+        background: #2a2a2a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+
+      .panel-wrapper {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .device-img {
+        max-width: 110%;
+        max-height: 110%;
+        object-fit: contain;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Info Section (Right) */
+      .info-section {
+        width: 420px;
+        background: white;
+        overflow-y: auto;
+        padding: 20px;
+        box-shadow: -4px 0 20px rgba(0, 0, 0, 0.2);
+      }
+
+      .info-section::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      .info-section::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+
+      .info-section::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 10px;
+      }
+
+      .card-header {
+        border-bottom: 2px solid #e0e0e0;
+        padding-bottom: 12px;
+        margin-bottom: 16px;
+      }
+
+      .card-title {
+        font-size: 20px;
+        font-weight: bold;
+        color: #333;
+        margin: 0;
+      }
+
+      .card-subtitle {
+        font-size: 12px;
+        color: #666;
+        margin: 4px 0 0 0;
+      }
+
+      .status-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #5bff8f;
+        margin-right: 6px;
+        animation: pulse-status 2s ease-in-out infinite;
+      }
+
+      @keyframes pulse-status {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+
+      /* Total Summary Section */
+      .total-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 16px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+
+      .total-title {
+        font-size: 14px;
+        opacity: 0.9;
+        margin-bottom: 12px;
+        font-weight: 600;
+      }
+
+      .total-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .total-item {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 10px;
+        border-radius: 6px;
+      }
+
+      .total-label {
+        font-size: 11px;
+        opacity: 0.8;
+        margin-bottom: 4px;
+      }
+
+      .total-value {
+        font-size: 18px;
+        font-weight: bold;
+      }
+
+      .total-unit {
+        font-size: 12px;
+        opacity: 0.9;
+        margin-left: 2px;
+      }
+
+      /* Phase Sections */
+      .phase-section {
+        margin-bottom: 20px;
+        padding: 12px;
+        background: #f9f9f9;
+        border-radius: 8px;
+        border-left: 4px solid #666;
+      }
+
+      .phase-section.phase-r {
+        border-left-color: #ff4757;
+      }
+
+      .phase-section.phase-s {
+        border-left-color: #ffa502;
+      }
+
+      .phase-section.phase-t {
+        border-left-color: #1e90ff;
+      }
+
+      .phase-title {
+        font-size: 16px;
+        font-weight: bold;
+        margin: 0 0 12px 0;
+        color: #333;
+      }
+
+      .data-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .data-item {
+        display: flex;
+        flex-direction: column;
+        padding: 6px 0;
+      }
+
+      .data-label {
+        font-size: 11px;
+        color: #666;
+        font-weight: 500;
+        margin-bottom: 2px;
+      }
+
+      .data-value {
+        font-size: 15px;
+        font-weight: bold;
+        color: #333;
+      }
+
+      .data-unit {
+        font-size: 11px;
+        color: #999;
+        margin-left: 3px;
+      }
+
+      .update-time {
+        text-align: center;
+        font-size: 11px;
+        color: #999;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid #e0e0e0;
+      }
+
+      /* LED Buttons - Positioned on Panel Image */
+      .led-button {
+        border-radius: 50%;
+        /* box-shadow: inset 0 -6px 12px rgba(0, 0, 0, 0.35); */
+        border: 3px solid rgba(0, 0, 0, 0.35);
+        cursor: pointer;
+        transition: all 250ms ease;
+        outline: none;
+        position: absolute;
+        color: transparent;
+        font-size: 0;
+        z-index: 10;
+      }
+
+      /* OFF state - dark */
+      .led-button.red {
+        background: #8b1b1b;
+        border-color: #5a1111;
+      }
+
+      .led-button.green {
+        background: #1f6b2a;
+        border-color: #14451b;
+      }
+
+      /* ON state - bright + glow + pulse animation */
+      .led-button.on.red {
+        background: radial-gradient(circle, #ff6b6b 0%, #ff4747 100%);
+        box-shadow: 0 0 25px 8px rgba(255, 71, 71, 0.5),
+          inset 0 0 10px rgba(255, 255, 255, 0.3);
+        border-color: #ff8888;
+        animation: pulse-red 2s ease-in-out infinite;
+      }
+
+      .led-button.on.green {
+        background: radial-gradient(circle, #5bff8f 0%, #39e06b 100%);
+        box-shadow: 0 0 25px 8px rgba(57, 224, 107, 0.5),
+          inset 0 0 10px rgba(255, 255, 255, 0.3);
+        border-color: #66ff99;
+        animation: pulse-green 2s ease-in-out infinite;
+      }
+
+      @keyframes pulse-red {
+        0%, 100% {
+          box-shadow: 0 0 25px 8px rgba(255, 71, 71, 0.5),
+            inset 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+        50% {
+          box-shadow: 0 0 35px 12px rgba(255, 71, 71, 0.7),
+            inset 0 0 15px rgba(255, 255, 255, 0.4);
+        }
+      }
+
+      @keyframes pulse-green {
+        0%, 100% {
+          box-shadow: 0 0 25px 8px rgba(57, 224, 107, 0.5),
+            inset 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+        50% {
+          box-shadow: 0 0 35px 12px rgba(57, 224, 107, 0.7),
+            inset 0 0 15px rgba(255, 255, 255, 0.4);
+        }
+      }
+
+      /* Button positions based on your panel image */
+      /* Left vertical buttons (8 red buttons) */
+      #led-r1 { top: 13.65%; left: 34.6%; width: 53px;
+        height: 41px;}
+      #led-r2 { top: 19%; left: 34.9%; width: 54px;
+        height: 42px;}
+      #led-r3 { top: 24.55%; left: 35.2%; width: 55px;
+        height: 43px;}
+      #led-s1 { top: 30.3%; left: 35.6%; width: 56px;
+        height: 44px;}
+      #led-s2 { top: 36.3%; left: 35.95%; width: 57px;
+        height: 45px;}
+      #led-s3 { top: 42.48%; left: 36.4%; width: 58px;
+        height: 46px;}
+      #led-t1 { top: 49.1%; left: 36.8%; width: 59px;
+        height: 47px;}
+      #led-t2 { top: 56.1%; left: 37.22%; width: 60px;
+        height: 48px;}
+
+      /* Bottom horizontal buttons */
+      #led-t3 { bottom: 42%; left: 51.23%; width: 58px;
+        height: 44.5px; rotate: 10deg;}
+      #led-buzzer { bottom: 42.2%; left: 58.01%; width: 57.5px;
+        height: 44.5px; rotate: 10deg;}
+
+      /* Responsive adjustments */
+      @media (max-width: 1200px) {
+        .info-section {
+          width: 380px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          flex-direction: column;
+        }
+        
+        .panel-section {
+          height: 50vh;
+        }
+
+        .info-section {
+          width: 100%;
+          height: 50vh;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Panel Section (Left) -->
+      <div class="panel-section">
+        <div class="panel-wrapper">
+          <img
+            src="/static/assets/Lampu0.png"
+            class="device-img"
+            alt="Panel Device"
+          />
+          
+          <!-- LED Buttons positioned on the panel -->
+          <button class="led-button red" id="led-r1" data-relay="R1" aria-label="Relay R1">R1</button>
+          <button class="led-button red" id="led-r2" data-relay="R2" aria-label="Relay R2">R2</button>
+          <button class="led-button red" id="led-r3" data-relay="R3" aria-label="Relay R3">R3</button>
+          <button class="led-button red" id="led-s1" data-relay="S1" aria-label="Relay S1">S1</button>
+          <button class="led-button red" id="led-s2" data-relay="S2" aria-label="Relay S2">S2</button>
+          <button class="led-button red" id="led-s3" data-relay="S3" aria-label="Relay S3">S3</button>
+          <button class="led-button red" id="led-t1" data-relay="T1" aria-label="Relay T1">T1</button>
+          <button class="led-button red" id="led-t2" data-relay="T2" aria-label="Relay T2">T2</button>
+          <button class="led-button red" id="led-t3" data-relay="T3" aria-label="Relay T3">T3</button>
+          <button class="led-button green" id="led-buzzer" data-relay="buzzer" aria-label="Buzzer">Buzzer</button>
+        </div>
+      </div>
+
+      <!-- Info Section (Right) -->
+      <div class="info-section">
+        <div class="card-header">
+          <h2 class="card-title">
+            <span class="status-indicator" id="status-dot"></span>
+            PZEM-004T 3 Phase
+          </h2>
+          <p class="card-subtitle">Monitoring Daya Listrik Real-time</p>
+        </div>
+
+        <!-- Total Summary -->
+        <div class="total-section">
+          <div class="total-title">📊 Total Konsumsi</div>
+          <div class="total-grid">
+            <div class="total-item">
+              <div class="total-label">Total Daya</div>
+              <div class="total-value">
+                <span id="total-power">0</span>
+                <span class="total-unit">W</span>
+              </div>
+            </div>
+            <div class="total-item">
+              <div class="total-label">Total Arus</div>
+              <div class="total-value">
+                <span id="total-current">0</span>
+                <span class="total-unit">A</span>
+              </div>
+            </div>
+            <div class="total-item" style="grid-column: 1 / -1">
+              <div class="total-label">Biaya</div>
+              <div class="total-value">Rp <span id="total-cost">0</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fasa R -->
+        <div class="phase-section phase-r">
+          <h3 class="phase-title">⚡ Fasa R</h3>
+          <div class="data-grid">
+            <div class="data-item">
+              <span class="data-label">Tegangan</span>
+              <span class="data-value">
+                <span id="voltage-r">0</span>
+                <span class="data-unit">V</span>
+              </span>
+            </div>
+            <div class="data-item">
+              <span class="data-label">Arus</span>
+              <span class="data-value">
+                <span id="current-r">0</span>
+                <span class="data-unit">A</span>
+              </span>
+            </div>
+            <div class="data-item">
+              <span class="data-label">Daya</span>
+              <span class="data-value">
+                <span id="power-r">0</span>
+                <span class="data-unit">W</span>
+              </span>
+            </div>
+            <div class="data-item">
+              <span class="data-label">Power Factor</span>
+              <span class="data-value">
+                <span id="pf-r">0</span>
+              </span>
+            </div>
+            <div class="data-item">
+              <span class="data-label">Frekuensi</span>
+              <span class="data-value">
+                <span id="freq-r">0</span>
+                <span class="data-unit">Hz</span>
+              </span>
+            </div>
+            <div class="data-item">
+              <span class="data-label">Energi</span>
+              <span class="data-value">
+                <span id="energy-r">0</span>
+                <span class="data-unit">kWh</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fasa S -->
+        <div class="phase-section phase-s">
+          <h3 class="phase-title">⚡ Fasa S</h3>
+          <div class="data-grid">
+            <div class="data-item">
+              <span class="data-label">Tegangan</span>
+              <span class="data-value">
+                <span id="voltage-s">0</span>
+                <span class="data-unit">V</span>
+              </span>
+            </div>
+            <div class="data-item">
+              <span class="data-label">Arus</span>
+              <span class="data-value">
+                <span id="current-s">0</span>
+                <span class="data-unit">A</span>
+              </span>
+            </div>
+            <div class="data-item">
+              <span class="data-label">Daya</span>
+              <span class="data-value">
+                <span id="power-s">0</span>
+                <span class="data-unit">W</span>
+              </span>
+            </div>
+            <div class="data-item">
+              <span class="data-label">Power Factor</span>
+              <span class="data-value">
+                <span id="pf-s">0</span>
+              </span>
+            </div>
+            <div class="data-item">
+              <span class="data-label">Frekuensi</span>
+              <span class="data-value">
+                <span id="freq-s">0</span>
+                <span class="data-unit">Hz</span>
+              </span>
+            </div>
+            <div class="data-item">
+              <span class="data-label">Energi</span>
+              <span class="data-value">
+                <span id="energy-s">0</span>
+                <span class="data-unit">kWh</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fasa T -->
+        <div class="phase-section phase-t">
+          <h3 class="phase-title">⚡ Fasa T</h3>
+          <div class="data-grid">
+            <div class="data-item">
+              <span class="data-label">Tegangan</span>
+              <span class="data-value">
+                <span id="voltage-t">0</span>
+                <span class="data-unit">V</span>
+              </span>
+            </div>
+            <div class="data-item">
+              <span class="data-label">Arus</span>
+              <span class="data-value">
+                <span id="current-t">0</span>
+                <span class="data-unit">A</span>
+              </span>
+            </div>
+            <div class="data-item">
+              <span class="data-label">Daya</span>
+              <span class="data-value">
+                <span id="power-t">0</span>
+                <span class="data-unit">W</span>
+              </span>
+            </div>
+            <div class="data-item">
+              <span class="data-label">Power Factor</span>
+              <span class="data-value">
+                <span id="pf-t">0</span>
+              </span>
+            </div>
+            <div class="data-item">
+              <span class="data-label">Frekuensi</span>
+              <span class="data-value">
+                <span id="freq-t">0</span>
+                <span class="data-unit">Hz</span>
+              </span>
+            </div>
+            <div class="data-item">
+              <span class="data-label">Energi</span>
+              <span class="data-value">
+                <span id="energy-t">0</span>
+                <span class="data-unit">kWh</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="update-time">
+          Terakhir update: <span id="last-update">--:--:--</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let isOnline = false;
+
+      // Fungsi untuk toggle relay via API
+      async function toggleRelay(relayName, state) {
+        try {
+          const response = await fetch(
+            `/api/pico2/relay/${relayName}/${state}`
+          );
+          const data = await response.json();
+          console.log("Relay response:", data);
+          return data;
+        } catch (error) {
+          console.error("Error toggling relay:", error);
+          return null;
+        }
+      }
+
+      // Setup LED button listeners dengan kontrol relay
+      document.querySelectorAll(".led-button").forEach((button) => {
+        button.addEventListener("click", async function () {
+          if (!this.disabled) {
+            const relayName = this.getAttribute("data-relay");
+            const currentState = this.classList.contains("on") ? 1 : 0;
+            const newState = currentState === 1 ? 0 : 1;
+
+            // Toggle visual immediately for better UX
+            this.classList.toggle("on");
+            const isOn = this.classList.contains("on");
+            this.setAttribute("aria-pressed", isOn);
+
+            // Send command to relay
+            if (relayName) {
+              const result = await toggleRelay(relayName, newState);
+              if (!result) {
+                // Revert if failed
+                this.classList.toggle("on");
+                this.setAttribute("aria-pressed", !isOn);
+                alert("Gagal mengontrol relay. Periksa koneksi.");
+              }
+            }
+          }
+        });
+      });
+
+      // Update waktu
+      function updateTime() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString("id-ID");
+        document.getElementById("last-update").textContent = timeString;
+      }
+
+      // Update data PZEM dari API
+      async function updatePZEMData() {
+        try {
+          const response = await fetch("/api/pico2/data");
+          const data = await response.json();
+
+          if (data.error) {
+            console.error("Error from API:", data.error);
+            isOnline = false;
+            document.getElementById("status-dot").classList.add("offline");
+            return;
+          }
+
+          isOnline = true;
+          document.getElementById("status-dot").classList.remove("offline");
+
+          // Update Total
+          if (data.total) {
+            document.getElementById("total-power").textContent =
+              data.total.daya.toFixed(1);
+            document.getElementById("total-current").textContent =
+              data.total.arus.toFixed(2);
+            document.getElementById("total-cost").textContent =
+              data.total.biaya.toLocaleString("id-ID");
+          }
+
+          // Update Phase R
+          if (data.phaseR) {
+            document.getElementById("voltage-r").textContent =
+              data.phaseR.tegangan.toFixed(1);
+            document.getElementById("current-r").textContent =
+              data.phaseR.arus.toFixed(2);
+            document.getElementById("power-r").textContent =
+              data.phaseR.daya.toFixed(1);
+            document.getElementById("pf-r").textContent =
+              data.phaseR.pf.toFixed(2);
+            document.getElementById("freq-r").textContent =
+              data.phaseR.frekuensi.toFixed(1);
+            document.getElementById("energy-r").textContent =
+              data.phaseR.energi.toFixed(2);
+          }
+
+          // Update Phase S
+          if (data.phaseS) {
+            document.getElementById("voltage-s").textContent =
+              data.phaseS.tegangan.toFixed(1);
+            document.getElementById("current-s").textContent =
+              data.phaseS.arus.toFixed(2);
+            document.getElementById("power-s").textContent =
+              data.phaseS.daya.toFixed(1);
+            document.getElementById("pf-s").textContent =
+              data.phaseS.pf.toFixed(2);
+            document.getElementById("freq-s").textContent =
+              data.phaseS.frekuensi.toFixed(1);
+            document.getElementById("energy-s").textContent =
+              data.phaseS.energi.toFixed(2);
+          }
+
+          // Update Phase T
+          if (data.phaseT) {
+            document.getElementById("voltage-t").textContent =
+              data.phaseT.tegangan.toFixed(1);
+            document.getElementById("current-t").textContent =
+              data.phaseT.arus.toFixed(2);
+            document.getElementById("power-t").textContent =
+              data.phaseT.daya.toFixed(1);
+            document.getElementById("pf-t").textContent =
+              data.phaseT.pf.toFixed(2);
+            document.getElementById("freq-t").textContent =
+              data.phaseT.frekuensi.toFixed(1);
+            document.getElementById("energy-t").textContent =
+              data.phaseT.energi.toFixed(2);
+          }
+
+          // Update relay status (LED indicators)
+          if (data.relay) {
+            Object.keys(data.relay).forEach((relayName) => {
+              const button = document.querySelector(
+                `[data-relay="${relayName}"]`
+              );
+              if (button) {
+                const state = data.relay[relayName];
+                if (state === 1) {
+                  button.classList.add("on");
+                  button.setAttribute("aria-pressed", "true");
+                } else {
+                  button.classList.remove("on");
+                  button.setAttribute("aria-pressed", "false");
+                }
+              }
+            });
+          }
+
+          updateTime();
+        } catch (error) {
+          console.error("Error fetching PZEM data:", error);
+          isOnline = false;
+          document.getElementById("status-dot").classList.add("offline");
+        }
+      }
+
+      // Update data setiap 2 detik
+      setInterval(updatePZEMData, 2000);
+      updatePZEMData(); // Initial update
+    </script>
+  </body>
+</html>

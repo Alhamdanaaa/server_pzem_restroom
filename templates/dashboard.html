@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+</head>
+<body>
+    <div class="widget-row">
+        <div class="stat-card">
+            <div class="widget-title">Total Daya Bulan Ini</div>
+            <div class="large-stat">
+                <div class="large-stat-value orange" id="totaldayabulanan">-- kWh</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="widget-title">Total Tagihan Bulan Ini</div>
+            <div class="large-stat">
+                <div class="large-stat-value green" id="tagihanbulan">Rp --</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script taruh di paling bawah -->
+    <script>
+        async function updateTotals() {
+            try {
+                let res = await fetch("/get_totals");
+                let data = await res.json();
+                console.log("Data dari Flask:", data); // cek di console browser
+
+                document.getElementById("totaldayabulanan").textContent =
+                    data.total_energi.toFixed(2) + " kWh";
+                document.getElementById("tagihanbulan").textContent =
+                    "Rp " + data.total_tagihan.toLocaleString("id-ID");
+            } catch (err) {
+                console.error("Gagal ambil data:", err);
+            }
+        }
+
+        updateTotals(); // jalan pertama kali
+        setInterval(updateTotals, 5000); // update tiap 5 detik
+    </script>
+</body>
+</html>

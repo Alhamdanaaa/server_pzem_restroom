@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Gedung</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background-color: #f0f0f0;
+        font-family: "Poppins", Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+      }
+
+      .header {
+        background: white;
+        padding: 15px 0;
+        box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+        margin-bottom: 20px;
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 1000;
+      }
+
+      .header h1 {
+        color: #2c3e50;
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin: 0;
+      }
+
+      .sidebar {
+        min-height: 100vh;
+        background-color: white;
+        padding: 15px 0;
+        color: #333;
+        transition: all 0.3s ease;
+        position: fixed;
+        left: 0;
+        top: 68px;
+        width: 250px;
+        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        z-index: 999;
+        overflow-y: auto;
+      }
+
+      .sidebar.collapsed {
+        width: 70px;
+      }
+
+      .sidebar.collapsed .fa-chevron-down {
+        display: none !important;
+      }
+
+      .sidebar.collapsed .nav-link-text,
+      .sidebar.collapsed .sub-link {
+        display: none;
+      }
+
+      .sidebar.collapsed .nav-link {
+        padding: 10px 15px;
+        text-align: center;
+      }
+
+      .sidebar .nav-link {
+        color: #666;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 14px;
+        transition: all 0.2s ease-in-out;
+        margin: 2px 10px;
+      }
+
+      .sidebar .nav-link:hover {
+        background-color: #e8f4f8;
+        color: #4a90e2;
+      }
+
+      .sidebar .nav-link.active {
+        background-color: #4a90e2;
+        color: #fff;
+      }
+
+      .sidebar .sub-link {
+        padding: 8px 20px 8px 35px;
+        font-size: 12px;
+        color: #888;
+        margin: 2px 20px;
+      }
+
+      .sidebar .sub-link:hover {
+        background-color: #e8f4f8;
+        color: #4a90e2;
+      }
+
+      .main-content {
+        margin-left: 250px;
+        margin-top: 67px;
+        padding: 20px;
+        transition: all 0.3s ease;
+      }
+
+      .main-content.expanded {
+        margin-left: 70px;
+      }
+
+      .sidebar-toggle {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        color: #2c3e50;
+        cursor: pointer;
+        padding: 5px;
+      }
+
+      .tab-section {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      }
+
+      .custom-tabs {
+        display: grid;
+        grid-template-columns: repeat(5, 2fr);
+        gap: 8px;
+        align-items: center;
+        margin: 0 0 35px 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .tab-item {
+        text-align: center;
+        padding: 12px 8px;
+        border-radius: 25px;
+        background-color: #e9ecef;
+        color: #666;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .tab-item:hover {
+        background-color: #dee2e6;
+        text-decoration: none;
+        color: #495057;
+      }
+
+      .tab-item.active {
+        background-color: #4a90e2;
+        color: white;
+      }
+
+      /* Toggle Switch Styles */
+      .toggle-switch-container {
+        display: flex;
+        justify-content: center;
+        margin: 0 0 20px 0;
+        max-width: 100%;
+      }
+
+      .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+        max-width: none;
+        height: 45px;
+        background-color: #e9ecef;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .toggle-switch input {
+        display: none;
+      }
+
+      .toggle-slider {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        right: 2px;
+        bottom: 2px;
+        background-color: transparent;
+        border-radius: 18px;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+      }
+
+      .toggle-option {
+        width: 50%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 500;
+        color: #666;
+        transition: all 0.3s ease;
+        border-radius: 18px;
+        position: relative;
+        z-index: 2;
+      }
+
+      .toggle-indicator {
+        position: absolute;
+        width: calc(50% - 2px);
+        height: calc(100% - 2px);
+        background-color: #4a90e2;
+        border-radius: 18px;
+        transition: all 0.3s ease;
+        left: 1px;
+        top: 1px;
+        z-index: 1;
+      }
+
+      .toggle-switch input:checked ~ .toggle-slider .toggle-indicator {
+        transform: translateX(calc(100% + 2px));
+      }
+
+      .toggle-switch
+        input:not(:checked)
+        ~ .toggle-slider
+        .toggle-option.minggu {
+        color: white;
+      }
+
+      .toggle-switch input:not(:checked) ~ .toggle-slider .toggle-option.bulan {
+        color: #666;
+      }
+
+      /* toggle di bulan */
+      .toggle-switch input:checked ~ .toggle-slider .toggle-option.minggu {
+        color: #666;
+      }
+      .toggle-switch input:checked ~ .toggle-slider .toggle-option.bulan {
+        color: white;
+      }
+
+      .content-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .voltage-section {
+        background-color: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      }
+
+      .stats-section {
+        background-color: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      }
+
+      .voltage-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .voltage-row-2 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1px;
+        justify-items: center;
+      }
+
+      .voltage-circle {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+
+      .circle {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 6px solid;
+        margin-bottom: 10px;
+        transition: transform 0.2s ease;
+      }
+
+      .circle:hover {
+        transform: scale(1.05);
+      }
+
+      .circle.yellow {
+        border-color: #ffd700;
+      }
+      .circle.blue {
+        border-color: #00bfff;
+      }
+      .circle.red {
+        border-color: #ff4444;
+      }
+      .circle.cyan {
+        border-color: #00ffff;
+      }
+      .circle.orange {
+        border-color: #ff8800;
+      }
+      .circle.green {
+        border-color: #00ff44;
+      }
+      .circle.brown {
+        border-color: #8b4513;
+      }
+
+      .voltage-value {
+        font-size: 14px;
+        font-weight: bold;
+        color: #333;
+        margin: 0;
+      }
+
+      .voltage-label {
+        font-size: 11px;
+        color: #666;
+        margin: 5px 0 0 0;
+        line-height: 1.3;
+      }
+
+      .toggle-switch-container,
+      .stats-cards {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 30px;
+      }
+
+      .stat-card {
+        flex: 1;
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        transition: transform 0.2s ease;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .stat-title {
+        font-size: 12px;
+        color: #666;
+        margin: 0 0 8px 0;
+      }
+
+      .stat-value {
+        font-size: 13px;
+        font-weight: bold;
+        color: #333;
+        margin: 0;
+      }
+
+      .donut-section {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 30px;
+      }
+
+      .donut-container {
+        width: 200px;
+        height: 200px;
+        position: relative;
+      }
+
+      .legend {
+        text-align: left;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 8px;
+        font-size: 12px;
+        color: #666;
+      }
+
+      .legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 8px;
+        flex-shrink: 0;
+      }
+
+      .chart-container {
+        display: flex;
+        gap: 20px;
+        margin-top: 20px;
+      }
+
+      .chart-area {
+        flex: 2;
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      }
+
+      .chart-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+        margin: 0 0 10px 0;
+      }
+
+      .chart-wrapper {
+        height: 300px;
+        position: relative;
+      }
+
+      .prediction-panel {
+        flex: 1;
+        background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+        border-radius: 15px;
+        padding: 30px;
+        color: white;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 4px 20px rgba(116, 185, 255, 0.3);
+      }
+
+      .prediction-content {
+        text-align: center;
+        width: 100%;
+      }
+
+      .prediction-label {
+        font-size: 14px;
+        margin: 0 0 10px 0;
+        opacity: 0.9;
+      }
+
+      .prediction-value {
+        font-size: 18px;
+        font-weight: bold;
+        margin: 0 0 15px 0;
+      }
+
+      .prediction-divider {
+        border: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.3);
+        margin: 15px 0;
+      }
+
+      .system-status {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .status-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #28a745;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .sidebar {
+          transform: translateX(-100%);
+        }
+
+        .sidebar.show {
+          transform: translateX(0);
+        }
+
+        .main-content {
+          margin-left: 0;
+        }
+
+        .content-section {
+          grid-template-columns: 1fr;
+        }
+
+        .chart-container {
+          flex-direction: column;
+        }
+
+        .voltage-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .voltage-row-2 {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .custom-tabs {
+          grid-template-columns: 1fr 1fr;
+          gap: 4px;
+        }
+
+        .custom-tabs .tab-item:nth-child(n + 3) {
+          grid-column: 1 / -1;
+          margin-top: 4px;
+        }
+
+        .toggle-switch {
+          width: 160px;
+          height: 35px;
+        }
+
+        .toggle-option {
+          font-size: 12px;
+        }
+
+        .donut-section {
+          flex-direction: column;
+          gap: 15px;
+        }
+
+        .donut-container {
+          width: 150px;
+          height: 150px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <div class="header">
+      <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center">
+            <button class="sidebar-toggle me-3" onclick="toggleSidebar()">
+              <i class="fas fa-bars"></i>
+            </button>
+            <h1>
+              <i class="fas fa-building me-2"></i>Monitoring Penggunaan Listrik
+            </h1>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <nav class="nav flex-column">
+        <a class="nav-link active" href="#">
+          <i class="fas fa-tachometer-alt"></i>
+          <span class="nav-link-text ms-2">Dashboard Utama</span>
+        </a>
+        <a
+          class="nav-link"
+          data-bs-toggle="collapse"
+          href="#gedungMenu"
+          role="button"
+          aria-expanded="false"
+        >
+          <i class="fas fa-building"></i>
+          <span class="nav-link-text ms-2">Dashboard Gedung</span>
+          <i class="fas fa-chevron-down float-end mt-1"></i>
+        </a>
+        <div class="collapse show me-2" id="gedungMenu">
+          <a class="nav-link sub-link" href="#">Gedung Pusat</a>
+          <a class="nav-link sub-link" href="#">Gedung Mesin</a>
+          <a class="nav-link sub-link" href="#">Gedung Elektronika</a>
+          <a class="nav-link sub-link" href="#">Gedung Otomotif</a>
+          <a class="nav-link sub-link" href="#">Gedung TI</a>
+          <a class="nav-link sub-link" href="#">Gedung Manajemen</a>
+          <a class="nav-link sub-link" href="#">Gedung Sipil</a>
+        </div>
+      </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+      <!-- Content Section -->
+      <div class="content-section">
+        <!-- Voltage Section -->
+        <div class="voltage-section">
+          <ul class="custom-tabs">
+            <li>
+              <a
+                href="#"
+                class="tab-item active"
+                onclick="switchTab(this, 'tegangan')"
+                >Tegangan</a
+              >
+            </li>
+            <li>
+              <a href="#" class="tab-item" onclick="switchTab(this, 'arus')"
+                >Arus</a
+              >
+            </li>
+            <li>
+              <a href="#" class="tab-item" onclick="switchTab(this, 'daya')"
+                >Daya</a
+              >
+            </li>
+            <li>
+              <a href="#" class="tab-item" onclick="switchTab(this, 'energi')"
+                >Energi</a
+              >
+            </li>
+            <li>
+              <a
+                href="#"
+                class="tab-item"
+                onclick="switchTab(this, 'frekuensi')"
+                >Frekuensi</a
+              >
+            </li>
+          </ul>
+
+          <div id="tegangan-content">
+            <div class="voltage-grid">
+              <div class="voltage-circle">
+                <div class="circle yellow">
+                  <span class="voltage-value" id="departement-pusat">-- V</span>
+                </div>
+                <p class="voltage-label">Gedung Pusat</p>
+              </div>
+              <div class="voltage-circle">
+                <div class="circle blue">
+                  <span class="voltage-value" id="panel2">220 V</span>
+                </div>
+                <p class="voltage-label">Gedung Logam<br />& Mesin</p>
+              </div>
+              <div class="voltage-circle">
+                <div class="circle red">
+                  <span class="voltage-value">220 V</span>
+                </div>
+                <p class="voltage-label">Gedung Elektronika</p>
+              </div>
+              <div class="voltage-circle">
+                <div class="circle cyan">
+                  <span class="voltage-value">220 V</span>
+                </div>
+                <p class="voltage-label">Gedung Otomotif</p>
+              </div>
+            </div>
+
+            <div class="voltage-row-2">
+              <div class="voltage-circle">
+                <div class="circle orange">
+                  <span class="voltage-value">220 V</span>
+                </div>
+                <p class="voltage-label">Gedung TI</p>
+              </div>
+              <div class="voltage-circle">
+                <div class="circle green">
+                  <span class="voltage-value">220 V</span>
+                </div>
+                <p class="voltage-label">Gedung Manajemen</p>
+              </div>
+              <div class="voltage-circle">
+                <div class="circle brown">
+                  <span class="voltage-value">220 V</span>
+                </div>
+                <p class="voltage-label">Gedung Sipil</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats Section -->
+        <div class="stats-section">
+          <div class="toggle-switch-container">
+            <label class="toggle-switch">
+              <input
+                type="checkbox"
+                id="timeToggle"
+                onchange="handleToggleSwitch(this)"
+              />
+              <div class="toggle-slider">
+                <div class="toggle-indicator"></div>
+                <div class="toggle-option minggu">Minggu</div>
+                <div class="toggle-option bulan">Bulan</div>
+              </div>
+            </label>
+          </div>
+
+          <div class="stats-cards">
+            <div class="stat-card">
+              <p class="stat-title">Daya</p>
+              <p class="stat-value">-- kWh</p>
+            </div>
+            <div class="stat-card">
+              <p class="stat-title">Total Biaya</p>
+              <p class="stat-value">IDR --</p>
+            </div>
+          </div>
+
+          <div class="donut-section">
+            <div class="donut-container">
+              <canvas id="pieChart"></canvas>
+            </div>
+
+            <div class="legend" id="pieChartLegend">
+              <!-- Legend will be generated dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart Section -->
+      <div class="chart-container">
+        <div class="chart-area">
+          <h5 class="chart-title">Penggunaan Listrik - 7 Gedung</h5>
+          <div class="chart-wrapper">
+            <canvas id="usageChart"></canvas>
+          </div>
+        </div>
+        <div class="prediction-panel">
+          <div class="prediction-content">
+            <h5 class="chart-title mb-5" style="color: white">
+              Prediksi Penggunaan Energi Perbulan
+            </h5>
+            <p class="prediction-label">Prediksi penggunaan daya</p>
+            <h3 class="prediction-value">7.852.000 kWh</h3>
+            <hr class="prediction-divider" />
+            <p class="prediction-label">Prediksi Biaya</p>
+            <h3 class="prediction-value">IDR 7.852.000</h3>
+            <hr class="prediction-divider" />
+            <p class="prediction-label">Efisiensi</p>
+            <h3 class="prediction-value">85%</h3>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script>
+      let currentField = "tegangan";
+      let pieChart;
+      let usageChart;
+
+      // Color scheme for buildings
+      const buildingColors = [
+        "#ffd700", // Yellow - Gedung Pusat
+        "#00bfff", // Blue - Gedung Logam & Mesin
+        "#ff4444", // Red - Gedung Elektronika
+        "#00ffff", // Cyan - Gedung Otomotif
+        "#ff8800", // Orange - Gedung TI
+        "#00ff44", // Green - Gedung Manajemen
+        "#8b4513", // Brown - Gedung Sipil
+      ];
+
+      // ======================== PIE CHART ========================
+      async function fetchPieChartData() {
+        try {
+          const response = await fetch("/index/energy-pie");
+          const data = await response.json();
+          return data;
+        } catch (error) {
+          console.error("Error fetching pie chart data:", error);
+          return { labels: [], values: [] };
+        }
+      }
+
+      async function renderPieChart() {
+        const ctx = document.getElementById("pieChart").getContext("2d");
+        const data = await fetchPieChartData();
+
+        pieChart = new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels: data.labels,
+            datasets: [
+              {
+                data: data.values,
+                backgroundColor: buildingColors.slice(0, data.labels.length),
+                borderWidth: 2,
+                borderColor: "#fff",
+                hoverBorderWidth: 3,
+                hoverOffset: 10,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: "60%",
+            plugins: {
+              legend: {
+                display: false, // We'll create custom legend
+              },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    const total = context.dataset.data.reduce(
+                      (a, b) => a + b,
+                      0
+                    );
+                    const percentage = ((context.parsed * 100) / total).toFixed(
+                      1
+                    );
+                    return (
+                      context.label +
+                      ": " +
+                      context.parsed.toLocaleString() +
+                      " kWh (" +
+                      percentage +
+                      "%)"
+                    );
+                  },
+                },
+              },
+            },
+            animation: {
+              animateRotate: true,
+              duration: 1500,
+            },
+          },
+        });
+
+        // Generate custom legend
+        generatePieChartLegend(data.labels, data.values);
+      }
+
+      function generatePieChartLegend(labels, values) {
+        const legendContainer = document.getElementById("pieChartLegend");
+        legendContainer.innerHTML = "";
+
+        const total = values.reduce((a, b) => a + b, 0);
+
+        labels.forEach((label, index) => {
+          const percentage =
+            total > 0 ? ((values[index] * 100) / total).toFixed(1) : "0.0";
+
+          const legendItem = document.createElement("div");
+          legendItem.className = "legend-item";
+          legendItem.innerHTML = `
+            <div class="legend-dot" style="background-color: ${buildingColors[index]}"></div>
+            <span>${label}</span>
+          `;
+
+          // Add click functionality to toggle chart segments
+          legendItem.style.cursor = "pointer";
+          legendItem.addEventListener("click", () => {
+            const meta = pieChart.getDatasetMeta(0);
+            meta.data[index].hidden = !meta.data[index].hidden;
+            pieChart.update();
+          });
+
+          legendContainer.appendChild(legendItem);
+        });
+      }
+
+      async function updatePieChart() {
+        try {
+          const data = await fetchPieChartData();
+          pieChart.data.labels = data.labels;
+          pieChart.data.datasets[0].data = data.values;
+          pieChart.update("none");
+
+          // Update legend
+          generatePieChartLegend(data.labels, data.values);
+        } catch (error) {
+          console.error("Error updating pie chart:", error);
+        }
+      }
+
+      // ======================== REALTIME DATA ========================
+      async function fetchRealtime() {
+        try {
+          const response = await fetch(`/dashboard-admin?field=${currentField}`);
+          const data = await response.json();
+          let statsHTML = "";
+
+          Object.entries(data).forEach(([building, values]) => {
+            if (values) {
+              let val = values[currentField] ?? 0;
+              let displayVal = val;
+
+              // khusus energi supaya tidak jadi 0
+              if (currentField === "energi") {
+                if (val > 0 && val < 0.001) {
+                  displayVal = val.toExponential(6); // tampil scientific notation
+                } else {
+                  displayVal = val.toFixed(3); // tampil normal
+                }
+              } else {
+                displayVal = Number(val).toLocaleString();
+              }
+
+              // Tambahkan satuan sesuai field
+              let unit = "";
+              switch (currentField) {
+                case "daya":
+                  unit = "kW";
+                  break;
+                case "energi":
+                  unit = "kWh";
+                  break;
+                case "arus":
+                  unit = "A";
+                  break;
+                case "tegangan":
+                  unit = "V";
+                  break;
+                case "frekuensi":
+                  unit = "Hz";
+                  break;
+                default:
+                  unit = " ";
+              }
+              // Buat slug ID dari nama gedung
+              const id = building
+                .toLowerCase()
+                .replace(/\s+/g, "-")
+                .replace(/&/g, "dan");
+
+              const el = document.getElementById(id);
+              if (el) {
+                el.textContent = `${displayVal} ${unit}`;
+              }
+            }
+          });
+        } catch (error) {
+          console.error("Error fetching realtime:", error);
+        }
+      }
+
+      // ======================= LINE CHART ========================
+      async function fetchEnergyUsage() {
+        try {
+          const response = await fetch("/index/energy-usage");
+          const result = await response.json();
+          return result;
+        } catch (error) {
+          console.error("Error fetching energy usage:", error);
+          return { labels: [], datasets: [] };
+        }
+      }
+
+      async function renderLineChart() {
+        const ctx = document.getElementById("usageChart").getContext("2d");
+        const result = await fetchEnergyUsage();
+
+        const datasets = result.datasets.map((ds, index) => ({
+          label: ds.building,
+          data: ds.usage,
+          borderWidth: 2,
+          fill: false,
+          tension: 0.3,
+          borderColor: buildingColors[index] || getRandomColor(),
+          backgroundColor: (buildingColors[index] || getRandomColor()) + "20",
+        }));
+
+        usageChart = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: result.labels,
+            datasets: datasets,
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { intersect: false, mode: "index" },
+            plugins: {
+              legend: { display: true, position: "top" },
+              tooltip: {
+                callbacks: {
+                  label: (context) =>
+                    context.dataset.label +
+                    ": " +
+                    context.parsed.y.toLocaleString() +
+                    " kW",
+                },
+              },
+            },
+            scales: {
+              y: {
+                ticks: {
+                  callback: (value) => value.toLocaleString() + " kW",
+                },
+              },
+            },
+          },
+        });
+      }
+
+      async function updateLineChart() {
+        try {
+          const result = await fetchEnergyUsage();
+          usageChart.data.labels = result.labels;
+
+          result.datasets.forEach((ds, i) => {
+            if (usageChart.data.datasets[i]) {
+              usageChart.data.datasets[i].data = ds.usage;
+            }
+          });
+
+          usageChart.update("none");
+        } catch (error) {
+          console.error("Error updating line chart:", error);
+        }
+      }
+
+      function getRandomColor(alpha = 1) {
+        const r = Math.floor(Math.random() * 255);
+        const g = Math.floor(Math.random() * 255);
+        const b = Math.floor(Math.random() * 255);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      }
+
+      // ======================== UTILITY FUNCTIONS ========================
+      function toggleSidebar() {
+        const sidebar = document.getElementById("sidebar");
+        const mainContent = document.getElementById("mainContent");
+
+        sidebar.classList.toggle("collapsed");
+        mainContent.classList.toggle("expanded");
+      }
+
+      function switchTab(element, tabType) {
+        currentField = tabType;
+
+        // Hapus class active dari semua tab
+        document.querySelectorAll(".tab-item").forEach((tab) => {
+          tab.classList.remove("active");
+        });
+
+        // Tambahkan class active ke tab yang diklik
+        element.classList.add("active");
+
+        // Update data realtime sesuai tab baru
+        fetchRealtime();
+      }
+
+      function handleToggleSwitch(toggle) {
+        const timeType = toggle.checked ? "bulan" : "minggu";
+        updateStatsData(timeType);
+
+        const container = toggle.closest(".toggle-switch");
+        container.style.transform = "scale(0.98)";
+        setTimeout(() => {
+          container.style.transform = "scale(1)";
+        }, 100);
+      }
+
+      //========================= FETCH STATS ========================
+      async function fetchStats() {
+        try {
+          const response = await fetch("/index/stats");
+          const data = await response.json();
+          return data;
+        } catch (error) {
+          console.error("Error fetching stats:", error);
+          return {
+            period: "minggu",
+            total_energy: 0,
+            total_cost: 0,
+            energy_formatted: "0.0 kWh",
+            cost_formatted: "IDR 0.0",
+          };
+        }
+      }
+
+      async function updateStatsData(timeType) {
+        try {
+          const data = await fetchStats(); // ambil dari API
+
+          const dayaElement = document.querySelector(
+            ".stat-card:first-child .stat-value"
+          );
+          const biayaElement = document.querySelector(
+            ".stat-card:last-child .stat-value"
+          );
+
+          // pakai data langsung dari backend
+          dayaElement.textContent = data.energy_formatted;
+          biayaElement.textContent = data.cost_formatted;
+        } catch (error) {
+          console.error("❌ Error update stats:", error);
+
+          // fallback kalau API error
+          const dayaElement = document.querySelector(
+            ".stat-card:first-child .stat-value"
+          );
+          const biayaElement = document.querySelector(
+            ".stat-card:last-child .stat-value"
+          );
+          dayaElement.textContent = "0.0 kWh";
+          biayaElement.textContent = "IDR 0.0";
+        }
+      }
+
+      // ======================== INITIALIZATION ========================
+      document.addEventListener("DOMContentLoaded", function () {
+        // Initialize charts
+        renderPieChart();
+        renderLineChart();
+
+        // Start data fetching
+        fetchRealtime();
+
+        // Set up intervals for real-time updates
+        setInterval(fetchRealtime, 1000);
+        setInterval(updateLineChart, 5000);
+        setInterval(updatePieChart, 10000); // Update pie chart every 10 seconds
+
+        // Initialize responsive state
+        if (window.innerWidth <= 768) {
+          document.getElementById("sidebar").classList.add("collapsed");
+          document.getElementById("mainContent").classList.add("expanded");
+        }
+
+        // Add loading animation for voltage circles
+        const circles = document.querySelectorAll(".circle");
+        circles.forEach((circle, index) => {
+          setTimeout(() => {
+            circle.style.opacity = "0";
+            circle.style.transform = "scale(0.8)";
+            circle.style.transition = "all 0.5s ease";
+
+            setTimeout(() => {
+              circle.style.opacity = "1";
+              circle.style.transform = "scale(1)";
+            }, 100);
+          }, index * 100);
+        });
+      });
+
+      // ======================== EVENT LISTENERS ========================
+      window.addEventListener("resize", function () {
+        if (window.innerWidth <= 768) {
+          document.getElementById("sidebar").classList.add("collapsed");
+          document.getElementById("mainContent").classList.add("expanded");
+        }
+      });
+
+      // Add smooth scrolling for navigation links
+      document.querySelectorAll(".nav-link").forEach((link) => {
+        link.addEventListener("click", function (e) {
+          if (this.getAttribute("href") === "#") {
+            e.preventDefault();
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

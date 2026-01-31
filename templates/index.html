@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Energy Usage Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link rel="stylesheet" href='static/style2.css'>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    
+    <!-- Header Section -->
+    <div class="header">
+        <div class="header-left">
+            <div class="header-title">Monitoring Penggunaan Daya</div>
+        </div>
+        <div class="header-running-line"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="dashboard-grid">
+            
+            <!-- Left Widget: Top Devices -->
+            <div class="widget top-devices">
+                <div class="device-grid">
+                    <!-- Unit Selector -->
+                    <div class="unit-selector">
+                        <label for="unitSelect"></label>
+                        <select id="unitSelect">
+                            <option value="kWh">Daya</option>
+                            <option value="V">Tegangan</option>
+                            <option value="A">Arus</option>
+                            <option value="Hz">Frekuensi</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Room 1 -->
+                    <div class="widget-ruang" style="align-items: center !important;">Ruang 1
+                        <div class="device-card oven">
+                            <div class="device-power" id="r1">--</div>
+                            <div class="device-unit">kWh</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Room 2 -->
+                    <div class="widget-ruang">Ruang 2
+                        <div class="device-card gas-furnace">
+                            <div class="device-power" id="r2">--</div>
+                            <div class="device-unit">kWh</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Room 3 -->
+                    <div class="widget-ruang">Ruang 3
+                        <div class="device-card guest-bedroom">
+                            <div class="device-power" id="r3">--</div>
+                            <div class="device-unit">kWh</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Room 4 -->
+                    <div class="widget-ruang">Ruang 4
+                        <div class="device-card office">
+                            <div class="device-power" id="r4">--</div>
+                            <div class="device-unit">kWh</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Power Statistics -->
+                <div class="power-stats">
+                    <div class="stat-card">
+                        <div class="stat-title">Total Daya Hari Ini</div>
+                        <div class="stat-value orange" id="totaldayaharian">-- kWh</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Biaya Listrik Hari Ini</div>
+                        <div class="stat-value cost" id="biayaharian">Rp -- </div>
+                    </div>
+                </div>
+
+                <!-- Hourly Chart -->
+                <div class="chart-container">
+                    <canvas id="hourlyChart"></canvas>
+                </div>                
+                    <div class="widget-ruang" style="margin-top: 25px !important;">
+                        <div class="progress-container">
+                            <div class="progress-bar" id="avgProgress"></div>
+                        </div>
+                        <div class="progress-value" style="text-align: left;" id="avgValue"></div>
+                    </div>
+                </div>
+
+            <!-- Right Widget: Power Usage Combined -->
+            <div class="widget top-devices">
+                <!-- Monthly Statistics -->
+                <div class="widget-row">
+                    <div class="stat-card">
+                        <div class="widget-title">Total Daya Bulan Ini</div>
+                        <div class="large-stat">
+                            <div class="large-stat-value orange" id="totaldayabulanan">-- kWh</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="widget-title">Total Tagihan Bulan Ini</div>
+                        <div class="large-stat">
+                            <div class="large-stat-value green" id="tagihanbulan">Rp --</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pie Chart Section -->
+                <div class="pie-full-box">
+                    <div class="widget-titleP">Penggunaan Daya 1 Bulan Perruangan</div>
+                        <div class="pie-container">
+                            <div class="pie-chart-container">
+                                <canvas id="pieRoomChart"></canvas>
+                            </div>
+                        </div> 
+                        <div class="power-stats">   
+                            <div class="pie-legend">
+                                <div><span style="background:#ef4444"></span> Ruang 1</div>
+                                <div><span style="background:#f59e0b"></span> Ruang 2</div>
+                                <div><span style="background:#10b981"></span> Ruang 3</div>
+                                <div><span style="background:#0ea5e9"></span> Ruang 4</div>
+                            </div>
+                            <div class="widget-ruang" style="margin-top: 25px !important;">
+                                <div class="progress-container">
+                                <div class="progress-bar" id="avgProgressbulan"></div>
+                                </div>
+                                <div class="progress-value" style="text-align: left;" id="avgValuebulan"></div>
+                            </div>
+                        </div> 
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="static/script2.js"></script>
+</body>
+</html>

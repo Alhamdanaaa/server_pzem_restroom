@@ -1,0 +1,2106 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Monitoring 3D</title>
+
+  <!-- BOOTSTRAP & ICON & FONT AWESOME -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/icon.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+  <!-- CHART -->
+  <script src="../static/js/three/chart.js"></script>
+
+  <!-- THREE.JS -->
+  <script src="../static/js/three/three.min.js"></script>
+  <script src="../static/js/three/OrbitControls.js"></script>
+  <script src="../static/js/three/GLTFLoader.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+
+    .knob-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      gap: 15px;
+      margin-bottom: 20px;
+      padding: 10px 0;
+    }
+
+    .knob {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: #f8f9fa;
+      position: relative;
+      border: 8px solid #e9ecef;
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+    }
+
+    .knob-handle {
+      position: absolute;
+      width: 6px;
+      height: 30px;
+      background: #0d6efd;
+      left: 50%;
+      top: 5px;
+      transform-origin: center 40px;
+      transform: rotate(0deg);
+      transition: transform 0.1s ease;
+      border-radius: 3px;
+    }
+
+    .knob-label {
+      position: absolute;
+      bottom: -25px;
+      width: 100%;
+      text-align: center;
+      font-size: 0.8rem;
+      color: #495057;
+    }
+
+    .knob-value {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      transform: translateY(-50%);
+      font-weight: bold;
+      font-size: 1.1rem;
+      color: #212529;
+    }
+
+    /* Gaya untuk panel kontrol */
+    .control-panel {
+      position: fixed;
+      top: 80px;
+      left: 20px;
+      width: 320px;
+      max-width: calc(100% - 40px);
+      max-height: 80vh;
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      z-index: 97;
+      transition: all 0.3s ease;
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+      display: none;
+      opacity: 0;
+      transform: translateY(-10px);
+      will-change: transform, opacity;
+      -ms-overflow-style: none;
+      /* IE and Edge */
+      scrollbar-width: none;
+      /* Firefox */
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      overflow-y: auto;
+    }
+
+    .control-panel.show {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .control-panel.minimized {
+      display: none;
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+
+    /* Hilangkan scrollbar untuk panel sensor dan semua elemen di dalamnya */
+    #sensor-panel {
+      overflow: hidden !important;
+      -ms-overflow-style: none !important;
+      /* IE and Edge */
+      scrollbar-width: none !important;
+      /* Firefox */
+    }
+
+    #sensor-panel * {
+      -ms-overflow-style: none !important;
+      scrollbar-width: none !important;
+    }
+
+    #sensor-panel *::-webkit-scrollbar {
+      display: none !important;
+      /* Chrome, Safari, Opera */
+      width: 0 !important;
+      height: 0 !important;
+    }
+
+    .control-panel.minimized {
+      display: block;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-10px);
+    }
+
+    .control-panel:not(.minimized) {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .control-panel.minimized .panel-content {
+      max-height: 0 !important;
+      opacity: 0;
+      padding: 0 15px !important;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .control-panel:not(.minimized) .panel-content {
+      max-height: 600px;
+      opacity: 1;
+      transition: all 0.3s ease;
+      overflow-y: auto;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 15px;
+      background: #f8f9fa;
+      cursor: pointer;
+      user-select: none;
+      border-bottom: 1px solid #eee;
+      font-weight: bold;
+      font-size: 1rem;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 5px;
+      color: #6c757d;
+      transition: all 0.3s ease;
+      border-radius: 4px;
+    }
+
+    .close-btn:hover {
+      background: rgba(220, 53, 69, 0.1);
+      color: #dc3545;
+    }
+
+    .panel-content {
+      padding: 15px;
+      max-height: 600px;
+      overflow-y: auto;
+      transition: all 0.3s ease;
+    }
+
+    /* Gaya untuk navbar */
+    .navbar {
+      position: fixed;
+      top: 20px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+      padding: 10px 15px;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+
+    #main-navbar {
+      left: 20px;
+    }
+
+    #right-navbar {
+      right: 20px;
+      left: auto;
+    }
+
+    .navbar-logo {
+      display: flex;
+      align-items: center;
+      padding: 8px 16px;
+      font-weight: bold;
+      font-size: 1rem;
+      color: #0d6efd;
+    }
+
+    .navbar-btn {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      background: #f8f9fa;
+      border: 2px solid #dee2e6;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #495057;
+      text-decoration: none;
+      min-width: 140px;
+    }
+
+    .navbar-btn:hover {
+      background: #e9ecef;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      border-color: #0d6efd;
+      color: #0d6efd;
+    }
+
+    .navbar-btn i {
+      margin-right: 10px;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+    }
+
+    .navbar-btn:hover i {
+      transform: scale(1.1);
+    }
+
+    .navbar-btn.active {
+      background: linear-gradient(135deg, rgba(13, 110, 253, 0.1), rgba(13, 110, 253, 0.05));
+      border-color: #0d6efd;
+      color: #0d6efd;
+    }
+
+    .navbar-close {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 12px;
+      background: rgba(220, 53, 69, 0.1);
+      border: 2px solid #dc3545;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #dc3545;
+      min-width: 40px;
+    }
+
+    .navbar-close:hover {
+      background: rgba(220, 53, 69, 0.2);
+      transform: scale(1.05);
+    }
+
+    .navbar.has-panel .navbar-btn:not(.active) {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .navbar.has-panel .navbar-close {
+      display: flex;
+    }
+
+    .navbar:not(.has-panel) .navbar-logo {
+      display: flex;
+    }
+
+    /* Gaya untuk tombol on/off air */
+    .valve-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .valve-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px;
+      background: #f8f9fa;
+      border: 2px solid #dee2e6;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .valve-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(13, 110, 253, 0.1), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .valve-btn:hover::before {
+      left: 100%;
+    }
+
+    .valve-btn i {
+      margin-right: 12px;
+      font-size: 1.3rem;
+      transition: all 0.3s ease;
+      color: #6c757d;
+    }
+
+    .valve-btn .valve-label {
+      flex: 1;
+      font-weight: 500;
+      color: #495057;
+    }
+
+    .valve-btn .status {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: rgba(220, 53, 69, 0.1);
+      color: #dc3545;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(220, 53, 69, 0.2);
+    }
+
+    .valve-btn.active {
+      background: linear-gradient(135deg, rgba(13, 110, 253, 0.05), rgba(13, 110, 253, 0.1));
+      border-color: #0d6efd;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2);
+    }
+
+    .valve-btn.active i {
+      color: #0d6efd;
+      transform: scale(1.1);
+    }
+
+    .valve-btn.active .status {
+      background: rgba(40, 167, 69, 0.1);
+      color: #28a745;
+      border-color: rgba(40, 167, 69, 0.2);
+    }
+
+    .valve-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .valve-btn:active {
+      transform: translateY(0);
+    }
+
+    /* Hasil pencampuran suhu dan debit air */
+    .mixed-temp,
+    .water-flow {
+      text-align: center;
+      margin: 10px 0;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    .mixed-temp .value {
+      color: #0d6efd;
+      font-size: 1.3rem;
+    }
+
+    /* Gaya untuk kontrol debit air */
+    .flow-controls {
+      margin-top: 15px;
+    }
+
+    .flow-control {
+      margin-bottom: 15px;
+    }
+
+    .flow-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 5px;
+      font-weight: 500;
+      color: #495057;
+    }
+
+    .flow-label i {
+      color: #0d6efd;
+      width: 20px;
+      text-align: center;
+    }
+
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .flow-slider {
+      flex: 1;
+      -webkit-appearance: none;
+      height: 6px;
+      border-radius: 3px;
+      background: #e9ecef;
+      outline: none;
+      margin: 10px 0;
+    }
+
+    .flow-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #0d6efd;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .flow-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2);
+    }
+
+    .flow-percent {
+      width: 40px;
+      text-align: right;
+      font-size: 0.9rem;
+      color: #6c757d;
+    }
+
+    /* Gaya untuk indikator debit air total */
+    .water-flow {
+      margin-top: 5px;
+      padding-top: 10px;
+      border-top: 1px solid #eee;
+    }
+
+    .flow-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .flow-header i {
+      color: #0dcaf0;
+    }
+
+    .flow-meter {
+      width: 100%;
+      height: 20px;
+      background: #e9ecef;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 8px 0;
+      position: relative;
+    }
+
+    .flow-level {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #0dcaf0, #0d6efd);
+      border-radius: 10px;
+      transition: width 0.3s ease, background-color 0.3s;
+    }
+
+    .flow-value {
+      font-size: 0.9rem;
+      color: #6c757d;
+      font-weight: normal;
+    }
+
+    /* Gaya untuk notifikasi suhu */
+    .temp-notification {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 15px 20px;
+      border-radius: 10px;
+      color: white;
+      font-weight: bold;
+      font-size: 1rem;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .temp-notification.show {
+      opacity: 1;
+    }
+
+    .temp-notification.hot {
+      background: linear-gradient(135deg, #ff6b6b, #dc3545);
+    }
+
+    .temp-notification.cold {
+      background: linear-gradient(135deg, #74c0fc, #0d6efd);
+    }
+
+    /* Responsif untuk layar kecil */
+    @media (max-width: 768px) {
+      .knob {
+        width: 80px;
+        height: 80px;
+      }
+
+      .temp-notification {
+        font-size: 0.9rem;
+        padding: 12px 16px;
+      }
+
+      .navbar {
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        padding: 6px;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .navbar-btn {
+        padding: 10px 12px;
+        margin: 2px;
+        min-width: 120px;
+        font-size: 0.8rem;
+      }
+
+      .navbar-btn i {
+        font-size: 1rem;
+        margin-right: 8px;
+      }
+
+      .navbar-close {
+        min-width: 35px;
+        padding: 6px 8px;
+        font-size: 0.8rem;
+      }
+
+      .navbar-logo {
+        font-size: 0.9rem;
+        padding: 6px 12px;
+      }
+
+      .control-panel {
+        top: 70px;
+        left: 10px;
+        right: 10px;
+        width: calc(100% - 20px);
+        max-width: none;
+      }
+
+      .panel-header {
+        padding: 10px 12px;
+        font-size: 0.9rem;
+      }
+
+      .panel-content {
+        padding: 12px;
+      }
+
+      .knob {
+        width: 70px;
+        height: 70px;
+      }
+
+      .flow-control {
+        margin-bottom: 12px;
+      }
+    }
+
+    #viewer-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    #dashboard {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 90%;
+      max-width: 350px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 12px;
+      padding: 12px 12px 5px 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+      z-index: 100;
+      max-height: 90vh;
+      overflow: visible;
+      /* Diubah dari hidden ke visible */
+      backdrop-filter: blur(5px);
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      touch-action: pan-y;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      cursor: pointer;
+      padding: 5px 10px;
+      background: rgba(0, 0, 0, 0.02);
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+
+    #dashboard-header:hover {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    #dashboard-header h4 {
+      margin: 0;
+      flex-grow: 1;
+    }
+
+    #dashboard-content {
+      max-height: calc(90vh - 100px);
+      /* Sesuaikan dengan tinggi header */
+      transition: all 0.3s ease;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-right: 8px;
+      margin-right: -8px;
+      /* Kompensasi untuk scrollbar */
+      padding-top: 5px;
+      flex-grow: 1;
+      /* Custom scrollbar */
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+    }
+
+    /* Webkit scrollbar */
+    #dashboard-content::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #dashboard-content::-webkit-scrollbar-track {
+      background: transparent;
+      margin: 5px 0;
+    }
+
+    #dashboard-content::-webkit-scrollbar-thumb {
+      background-color: rgba(0, 0, 0, 0.2);
+      border-radius: 3px;
+    }
+
+    #dashboard-content::-webkit-scrollbar-thumb:hover {
+      background-color: rgba(0, 0, 0, 0.3);
+    }
+
+    #dashboard.minimized #dashboard-content {
+      max-height: 0;
+      overflow: hidden;
+      padding: 0;
+      margin: 0;
+    }
+
+    #toggle-dashboard {
+      background: none;
+      border: none;
+      font-size: 1.2em;
+      cursor: pointer;
+      color: #666;
+      padding: 5px 10px;
+      border-radius: 4px;
+      transition: all 0.2s;
+      pointer-events: auto;
+      /* Pastikan tombol bisa diklik */
+      z-index: 101;
+    }
+
+    #toggle-dashboard:hover {
+      background: rgba(0, 0, 0, 0.05);
+      color: #333;
+    }
+
+    #toggle-dashboard i {
+      transition: transform 0.3s ease;
+    }
+
+    #dashboard.minimized #toggle-dashboard i {
+      transform: rotate(180deg);
+    }
+
+    #loading {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      font-size: 1.2em;
+    }
+
+    .sensor-card {
+      background: white;
+      padding: 18px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .sensor-card h4 {
+      color: #2c3e50;
+      margin-top: 0;
+      margin-bottom: 15px;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .sensor-card p {
+      color: #555;
+      line-height: 1.6;
+      margin-bottom: 15px;
+    }
+
+    .benefit-item {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 15px;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .benefit-item:hover {
+      background: #f1f3f5;
+      transform: translateX(5px);
+    }
+
+    .benefit-item i {
+      font-size: 1.2rem;
+      color: #0d6efd;
+      margin-right: 12px;
+      margin-top: 3px;
+      min-width: 24px;
+      text-align: center;
+    }
+
+    .benefit-item h5 {
+      margin: 0 0 5px 0;
+      color: #2c3e50;
+      font-size: 1rem;
+    }
+
+    .benefit-item p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #6c757d;
+    }
+
+    .sensor-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .sensor-value {
+      font-size: 1.4em;
+      font-weight: bold;
+      margin: 5px 0;
+      color: #2c3e50;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      #dashboard {
+        width: calc(100% - 30px);
+        top: auto;
+        bottom: 15px;
+        left: 15px;
+        right: 15px;
+        max-width: none;
+        max-height: 70vh;
+        padding: 8px 10px 5px 10px;
+        border-radius: 10px;
+      }
+
+      #dashboard-header {
+        padding: 0 5px 5px 5px;
+      }
+
+      #dashboard.minimized {
+        padding: 8px 10px;
+      }
+
+      #toggle-dashboard {
+        font-size: 1.3em;
+      }
+
+      #dashboard h4 {
+        margin: 0 0 10px 0;
+        font-size: 1.1em;
+      }
+
+      .sensor-card {
+        padding: 8px 10px;
+        margin-bottom: 8px;
+      }
+
+      .sensor-value {
+        font-size: 1.1em;
+      }
+
+      .sensor-card canvas {
+        height: 50px !important;
+      }
+
+      /* Hide scrollbar for Chrome, Safari and Opera */
+      #dashboard::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* Hide scrollbar for IE, Edge and Firefox */
+      #dashboard {
+        -ms-overflow-style: none;
+        /* IE and Edge */
+        scrollbar-width: none;
+        /* Firefox */
+      }
+
+      /* Add touch-friendly scroll */
+      #dashboard {
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .bottom-navbar {
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        width: 90%;
+        max-width: 500px;
+        background: rgba(0, 0, 0, 0.8);
+        border-radius: 30px 30px 0 0;
+        padding: 15px 20px;
+        z-index: 1000;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .nav-item {
+        color: rgba(255, 255, 255, 0.6);
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: 20px;
+        transition: all 0.3s ease;
+        font-size: 12px;
+      }
+
+      .nav-item i {
+        font-size: 18px;
+        margin-bottom: 4px;
+      }
+
+      .nav-item.active {
+        color: #fff;
+        background: rgba(118, 75, 162, 0.7);
+        transform: translateY(-8px);
+      }
+
+      .nav-item:hover {
+        color: #fff;
+        transform: translateY(-5px);
+      }
+
+      /* Tambahkan padding-bottom ke body untuk mencegah konten tertutup navbar */
+      body {
+        padding-bottom: 80px !important;
+        box-sizing: border-box;
+      }
+
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="loading">
+    <div class="spinner-border mb-3" role="status">
+      <span class="visually-hidden">Memuat...</span>
+    </div>
+    <div>Memuat model 3D...</div>
+  </div>
+
+  <!-- Notifikasi Suhu -->
+  <div id="temp-notification" class="temp-notification"></div>
+
+  <!-- Navbar Kiri -->
+  <nav class="navbar" id="main-navbar">
+    <div class="navbar-logo" id="navbar-logo">
+      <i class="fas fa-home"></i>
+    </div>
+    <button class="navbar-btn" id="toggle-water-nav">
+      <i class="fas fa-tint"></i>
+      Kontrol Air
+    </button>
+    <button class="navbar-btn" id="toggle-sensor-nav">
+      <i class="fas fa-chart-line"></i>
+      Sensor
+    </button>
+    <button class="navbar-close" id="close-navbar">
+      <i class="fas fa-times"></i>
+    </button>
+  </nav>
+
+  <!-- Navbar Kanan -->
+  <nav class="navbar" id="right-navbar" style="left: auto; right: 20px;">
+    <button class="navbar-btn" id="toggle-digital-twin">
+      <i class="fas fa-info-circle"></i>
+      <span>Info Digital Twin</span>
+    </button>
+    <button class="navbar-close" id="close-right-navbar">
+      <i class="fas fa-times"></i>
+    </button>
+  </nav>
+
+  <!-- Panel Digital Twin -->
+  <div id="digital-twin-panel" class="control-panel" style="right: 20px; left: auto; display: none;">
+    <div class="panel-header">
+      <span>Digital Twin</span>
+      <button class="close-btn" id="close-digital-twin-panel">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="panel-content" style="padding: 15px;">
+      <div class="sensor-card">
+        <h4>Apa itu Digital Twin?</h4>
+        <p>Digital Twin adalah representasi digital dari aset fisik yang memungkinkan pemantauan, analisis, dan simulasi
+          secara real-time. Teknologi ini menciptakan model virtual yang selalu diperbarui dengan data dari sensor untuk
+          mencerminkan kondisi aset fisik secara akurat.</p>
+        <img src="../static/model/digital twin image.jpeg" alt="Digital Twin Concept"
+          style="width: 100%; border-radius: 8px; margin: 10px 0;">
+      </div>
+
+      <div class="sensor-card">
+        <h4>Keuntungan Digital Twin</h4>
+        <div class="benefit-item">
+          <i class="fas fa-tachometer-alt"></i>
+          <div>
+            <h5>Pemantauan Real-time</h5>
+            <p>Pantau kondisi sistem secara langsung dengan pembaruan data real-time</p>
+          </div>
+        </div>
+        <div class="benefit-item">
+          <i class="fas fa-tools"></i>
+          <div>
+            <h5>Pemeliharaan Prediktif</h5>
+            <p>Deteksi potensi masalah sebelum terjadi kerusakan</p>
+          </div>
+        </div>
+        <div class="benefit-item">
+          <i class="fas fa-chart-line"></i>
+          <div>
+            <h5>Analitik Lanjutan</h5>
+            <p>Dapatkan wawasan mendalam dengan analisis data yang canggih</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel Kontrol Air (dalam navbar) -->
+  <div id="water-panel" class="control-panel minimized">
+    <div class="panel-header">
+      <span>Kontrol Air</span>
+      <button class="close-btn" id="close-water-panel">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="panel-content">
+      <div class="knob-container">
+        <div class="knob" id="hot-water-knob">
+          <div class="knob-handle"></div>
+          <div class="knob-label">Air Panas</div>
+          <div class="knob-value">0°C</div>
+        </div>
+        <div class="knob" id="cold-water-knob">
+          <div class="knob-handle"></div>
+          <div class="knob-label">Air Dingin</div>
+          <div class="knob-value">0°C</div>
+        </div>
+      </div>
+
+      <div class="mixed-temp">
+        <div>Suhu Air:</div>
+        <div class="value" id="mixed-temp-value">0°C</div>
+      </div>
+
+      <div class="water-flow">
+        <div class="flow-header">
+          <i class="fas fa-tint"></i>
+          <span>Debit Air</span>
+        </div>
+        <div class="flow-meter">
+          <div class="flow-level" id="water-flow-level"></div>
+        </div>
+        <div class="flow-value" id="flow-value">0%</div>
+      </div>
+
+      <div class="flow-controls">
+        <div class="flow-control">
+          <div class="flow-label">
+            <i class="fas fa-shower"></i>
+            <span>Shower</span>
+          </div>
+          <div class="slider-container">
+            <input type="range" min="0" max="100" value="0" class="flow-slider" id="shower-flow">
+            <span class="flow-percent">0%</span>
+          </div>
+        </div>
+        <div class="flow-control">
+          <div class="flow-label">
+            <i class="fas fa-faucet"></i>
+            <span>Kran Air</span>
+          </div>
+          <div class="slider-container">
+            <input type="range" min="0" max="100" value="0" class="flow-slider" id="faucet-flow">
+            <span class="flow-percent">0%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel Sensor (dalam navbar) -->
+  <div id="sensor-panel" class="control-panel" style="display: none;">
+    <div class="panel-header">
+      <span>Sensor</span>
+      <button class="close-btn" id="close-sensor-panel">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="panel-content">
+      <div class="sensor-card">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <i class="fas fa-thermometer-half me-2"></i>
+            <span>Suhu</span>
+          </div>
+          <div class="sensor-value" id="suhu-value">--°C</div>
+        </div>
+        <canvas id="suhu-chart" height="60"></canvas>
+      </div>
+
+      <div class="sensor-card">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <i class="fas fa-tint me-2"></i>
+            <span>Kelembapan</span>
+          </div>
+          <div class="sensor-value" id="kelembapan-value">--%</div>
+        </div>
+        <canvas id="kelembapan-chart" height="60"></canvas>
+      </div>
+
+      <div class="sensor-card">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <i class="fas fa-sun me-2"></i>
+            <span>Cahaya</span>
+          </div>
+          <div class="sensor-value" id="cahaya-value">-- lx</div>
+        </div>
+        <canvas id="cahaya-chart" height="60"></canvas>
+      </div>
+
+      <div class="sensor-card">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <i class="fas fa-smog me-2"></i>
+            <span>Gas</span>
+          </div>
+          <div class="sensor-value" id="gas-value">-- ppm</div>
+        </div>
+        <canvas id="gas-chart" height="60"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div id="viewer-container"></div>
+
+  <script>
+    const MODEL_URL = "{{ url_for('static', filename='model/restroom.glb') }}";
+
+    let scene, camera, renderer, controls, model;
+
+    // Initialize the scene
+    function initScene() {
+      // Scene setup
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xf0f0f0);
+
+      // Camera setup
+      const aspect = window.innerWidth / window.innerHeight;
+      camera = new THREE.PerspectiveCamera(50, aspect, 0.1, 1000);
+      camera.position.set(0, 1.5, 3);
+
+      // Renderer setup
+      renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true
+      });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      document.getElementById('viewer-container').appendChild(renderer.domElement);
+
+      // Controls
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.screenSpacePanning = false;
+      controls.minDistance = 1;
+      controls.maxDistance = 10;
+      controls.maxPolarAngle = Math.PI / 2;
+
+      // Lighting
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+      scene.add(ambientLight);
+
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      directionalLight.position.set(1, 1, 1);
+      scene.add(directionalLight);
+
+      // Add a subtle ground plane for better shadows
+      const groundGeometry = new THREE.PlaneGeometry(10, 10);
+      const groundMaterial = new THREE.MeshStandardMaterial({
+        color: 0xcccccc,
+        roughness: 0.8,
+        metalness: 0.2,
+        side: THREE.DoubleSide
+      });
+      const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+      ground.rotation.x = -Math.PI / 2;
+      ground.position.y = -0.5;
+      scene.add(ground);
+
+      // Load model
+      const loader = new THREE.GLTFLoader();
+      loader.load(
+        MODEL_URL,
+        (gltf) => {
+          model = gltf.scene;
+
+          // Enable shadows for all meshes in the model
+          model.traverse((node) => {
+            if (node.isMesh) {
+              node.castShadow = true;
+              node.receiveShadow = true;
+            }
+          });
+
+          // Calculate model dimensions and center it
+          const box = new THREE.Box3().setFromObject(model);
+          const center = box.getCenter(new THREE.Vector3());
+          const size = box.getSize(new THREE.Vector3());
+
+          // Calculate scale to fit in view
+          const maxDim = Math.max(size.x, size.y, size.z);
+          const scale = 1.5 / maxDim;
+
+          model.scale.set(scale, scale, scale);
+
+          // Center the model
+          const offset = center.multiplyScalar(-1);
+          model.position.copy(offset.multiplyScalar(scale));
+
+          // Position model slightly above ground
+          model.position.y = -size.y * scale * 0.5;
+
+          scene.add(model);
+
+          // Auto-rotate
+          //controls.autoRotate = true;
+          //controls.autoRotateSpeed = 0.4;
+
+          // Hide loading indicator
+          document.getElementById('loading').style.display = 'none';
+
+          // Start animation loop
+          animate();
+        },
+        (xhr) => {
+          // Loading progress
+          const percent = (xhr.loaded / xhr.total) * 100;
+          console.log(`Loading model: ${percent.toFixed(2)}%`);
+          document.getElementById('loading').innerText = `Memuat model: ${Math.round(percent)}%`;
+        },
+        (error) => {
+          console.error('Error loading model:', error);
+          document.getElementById('loading').innerText = 'Gagal memuat model. Muat ulang halaman.';
+        }
+      );
+
+      // Handle window resize
+      window.addEventListener('resize', onWindowResize, false);
+    }
+
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    // Animation loop
+    function animate() {
+      requestAnimationFrame(animate);
+
+      // Update controls
+      controls.update();
+
+      // Render scene
+      renderer.render(scene, camera);
+    }
+
+    // ===================== SENSOR =====================
+    function initChart(id, color) {
+      return new Chart(document.getElementById(id), {
+        type: 'line',
+        data: { labels: [], datasets: [{ data: [], borderColor: color, tension: .4 }] },
+        options: { plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
+      });
+    }
+
+    const charts = {
+      suhu: initChart('suhu-chart', '#0d6efd'),
+      kelembapan: initChart('kelembapan-chart', '#0dcaf0'),
+      cahaya: initChart('cahaya-chart', '#ffc107'),
+      gas: initChart('gas-chart', '#dc3545')
+    };
+
+    function updateChart(chart, value) {
+      chart.data.labels.push('');
+      chart.data.datasets[0].data.push(value);
+      if (chart.data.labels.length > 20) {
+        chart.data.labels.shift();
+        chart.data.datasets[0].data.shift();
+      }
+      chart.update();
+    }
+
+    function updateSensor() {
+      fetch('/get_sensor_data')
+        .then(r => r.json())
+        .then(d => {
+
+          document.getElementById('suhu-value').textContent =
+            d.suhu + ' °C';
+
+          document.getElementById('kelembapan-value').textContent =
+            d.kelembapan + ' %';
+
+          document.getElementById('cahaya-value').textContent =
+            d.cahaya + ' lx';
+
+          document.getElementById('gas-value').textContent =
+            d.gas + ' ppm';
+
+          updateChart(charts.suhu, d.suhu);
+          updateChart(charts.kelembapan, d.kelembapan);
+          updateChart(charts.cahaya, d.cahaya);
+          updateChart(charts.gas, d.gas);
+        })
+        .catch(err => console.error(err));
+    }
+
+
+    // Toggle dashboard visibility
+    function setupDashboardToggle() {
+      const dashboard = document.getElementById('dashboard');
+      const toggleButton = document.getElementById('toggle-dashboard');
+      const dashboardHeader = document.getElementById('dashboard-header');
+
+      // Pastikan elemen ada sebelum menambahkan event listener
+      if (toggleButton && dashboardHeader) {
+        // Toggle saat header atau tombol diklik
+        const toggleDashboard = (e) => {
+          // Hanya toggle jika yang diklik adalah header atau tombol, bukan konten yang discroll
+          if (e.target === dashboardHeader || e.target === toggleButton || e.target.closest('#dashboard-header')) {
+            e.stopPropagation();
+            dashboard.classList.toggle('minimized');
+            console.log('Dashboard toggled');
+          }
+        };
+
+        // Tambahkan event listener ke header dan tombol
+        dashboardHeader.addEventListener('click', toggleDashboard);
+        toggleButton.addEventListener('click', toggleDashboard);
+
+        // Close dashboard when clicking outside
+        document.addEventListener('click', (e) => {
+          if (!dashboard.contains(e.target) && !dashboard.classList.contains('minimized')) {
+            dashboard.classList.add('minimized');
+            console.log('Clicked outside, minimizing'); // Untuk debugging
+          }
+        });
+
+        // Auto-minimize on mobile
+        if (window.innerWidth <= 768) {
+          dashboard.classList.add('minimized');
+          console.log('Mobile device, dashboard minimized by default');
+        } else {
+          dashboard.classList.remove('minimized');
+        }
+      } else {
+        console.error('Toggle button or dashboard header not found!');
+      }
+    }
+
+    // Initialize everything when window loads
+    window.onload = () => {
+      try {
+        setupDashboardToggle();
+        initScene();
+        // Start with dummy data
+        updateSensor();
+        // Update sensor data every 2 seconds
+        setInterval(updateSensor, 2000);
+
+        // Add touch support for mobile
+        if ('ontouchstart' in window) {
+          document.body.style.cursor = 'pointer';
+        }
+      } catch (error) {
+        console.error('Error initializing application:', error);
+        document.getElementById('loading').innerHTML = `
+      <h4>Terjadi kesalahan</h4>
+      <p>${error.message}</p>
+      <button onclick="window.location.reload()" class="btn btn-light mt-2">
+        Muat Ulang Halaman
+      </button>
+    `;
+      }
+    };
+  </script>
+
+  <script>
+    // Variabel untuk menyimpan suhu air panas dan dingin
+    let hotWaterTemp = 0;
+    let coldWaterTemp = 0;
+    let lastNotification = null; // Untuk mencegah notifikasi berulang
+
+    // Fungsi untuk menampilkan notifikasi suhu
+    function showTemperatureNotification(mixedTemp) {
+      const notification = document.getElementById('temp-notification');
+
+      // Hapus notifikasi sebelumnya jika ada
+      if (lastNotification) {
+        clearTimeout(lastNotification);
+      }
+
+      // Cek batas suhu dan tampilkan notifikasi yang sesuai
+      if (mixedTemp > 35) {
+        notification.textContent = `⚠️ Air Terlalu Panas! ${mixedTemp}°C`;
+        notification.className = 'temp-notification hot show';
+      } else if (mixedTemp < 15) {
+        notification.textContent = `❄️ Air Terlalu Dingin! ${mixedTemp}°C`;
+        notification.className = 'temp-notification cold show';
+      } else {
+        // Suhu normal, sembunyikan notifikasi
+        notification.className = 'temp-notification';
+        return;
+      }
+
+      // Sembunyikan notifikasi setelah 3 detik
+      lastNotification = setTimeout(() => {
+        notification.className = 'temp-notification';
+        lastNotification = null;
+      }, 3000);
+    }
+
+    // Fungsi untuk menghitung suhu campuran
+    function calculateMixedTemp() {
+      // Rata-rata suhu air panas dan dingin
+      const mixedTemp = Math.round((hotWaterTemp + coldWaterTemp) / 2);
+      document.getElementById('mixed-temp-value').textContent = `${mixedTemp}°C`;
+
+      // Tampilkan notifikasi jika suhu di luar batas aman
+      showTemperatureNotification(mixedTemp);
+
+      return mixedTemp;
+    }
+
+    // Inisialisasi kontrol putar (knob)
+    function initKnob(knobId, minTemp, maxTemp) {
+      const knob = document.getElementById(knobId);
+      const handle = knob.querySelector('.knob-handle');
+      const valueDisplay = knob.querySelector('.knob-value');
+      let isDragging = false;
+      let startAngle = 0;
+      let currentAngle = 0;
+      const maxRotation = 135; // Maksimal 270 derajat (135 ke kiri dan kanan)
+
+      // Fungsi untuk mengupdate tampilan knob
+      function updateKnob(angle) {
+        const rotation = Math.max(-maxRotation, Math.min(maxRotation, angle));
+        handle.style.transform = `rotate(${rotation}deg)`;
+
+        // Hitung nilai suhu berdasarkan sudut
+        const tempRange = maxTemp - minTemp;
+        const normalizedValue = (rotation + maxRotation) / (2 * maxRotation);
+        const currentTemp = Math.round(minTemp + (normalizedValue * tempRange));
+
+        valueDisplay.textContent = `${currentTemp}°C`;
+
+        // Update suhu air panas/dingin berdasarkan knob yang diubah
+        if (knobId === 'hot-water-knob') {
+          hotWaterTemp = currentTemp;
+        } else {
+          coldWaterTemp = currentTemp;
+        }
+
+        // Hitung dan perbarui suhu campuran
+        calculateMixedTemp();
+
+        return currentTemp;
+      }
+
+      // Fungsi untuk mendapatkan sudut dari posisi mouse/touch
+      function getAngle(e) {
+        const rect = knob.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const clientX = e.clientX || e.touches[0].clientX;
+        const clientY = e.clientY || e.touches[0].clientY;
+        const x = clientX - centerX;
+        const y = clientY - centerY;
+        return Math.atan2(y, x) * (180 / Math.PI);
+      }
+
+      // Event listeners untuk mouse
+      function onMouseDown(e) {
+        isDragging = true;
+        startAngle = currentAngle - getAngle(e);
+        e.preventDefault();
+      }
+
+      function onMouseMove(e) {
+        if (!isDragging) return;
+        currentAngle = Math.min(maxRotation, Math.max(-maxRotation, startAngle + getAngle(e)));
+        updateKnob(currentAngle);
+      }
+
+      function onMouseUp() {
+        isDragging = false;
+      }
+
+      // Event listeners untuk touch
+      function onTouchStart(e) {
+        if (e.touches.length === 1) {
+          isDragging = true;
+          startAngle = currentAngle - getAngle(e);
+          e.preventDefault();
+        }
+      }
+
+      function onTouchMove(e) {
+        if (!isDragging) return;
+        if (e.touches.length === 1) {
+          currentAngle = Math.min(maxRotation, Math.max(-maxRotation, startAngle + getAngle(e)));
+          updateKnob(currentAngle);
+          e.preventDefault();
+        }
+      }
+
+      // Tambahkan event listeners
+      handle.addEventListener('mousedown', onMouseDown);
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+
+      // Tambahkan touch support untuk perangkat mobile
+      handle.addEventListener('touchstart', onTouchStart, { passive: false });
+      document.addEventListener('touchmove', onTouchMove, { passive: false });
+      document.addEventListener('touchend', onMouseUp);
+
+      // Inisialisasi nilai awal
+      updateKnob(0);
+    }
+
+    // Variabel untuk menyimpan nilai debit air
+    let showerFlow = 0;
+    let faucetFlow = 0;
+
+    // Fungsi untuk mengupdate tampilan debit air total
+    function updateWaterFlow() {
+      const flowLevel = document.getElementById('water-flow-level');
+      const flowValue = document.getElementById('flow-value');
+
+      // Hitung total debit air (rata-rata dari kedua sumber)
+      const totalFlow = Math.round((showerFlow + faucetFlow) / 2);
+
+      // Update tampilan
+      flowLevel.style.width = `${totalFlow}%`;
+      flowValue.textContent = `${totalFlow}%`;
+
+      // Ubah warna berdasarkan debit air
+      if (totalFlow === 0) {
+        flowLevel.style.background = '#e9ecef';
+      } else if (totalFlow < 50) {
+        flowLevel.style.background = 'linear-gradient(90deg, #0dcaf0, #0d6efd)';
+      } else {
+        flowLevel.style.background = 'linear-gradient(90deg, #0d6efd, #6610f2)';
+      }
+    }
+
+    // Inisialisasi slider debit air
+    function initFlowControls() {
+      const controls = [
+        { id: 'shower', icon: 'shower' },
+        { id: 'faucet', icon: 'faucet' }
+      ];
+
+      controls.forEach(control => {
+        const slider = document.getElementById(`${control.id}-flow`);
+        const percentDisplay = slider.nextElementSibling;
+
+        // Update tampilan saat slider digeser
+        function updateFlow() {
+          const value = parseInt(slider.value);
+          percentDisplay.textContent = `${value}%`;
+
+          // Update nilai debit air
+          if (control.id === 'shower') {
+            showerFlow = value;
+          } else {
+            faucetFlow = value;
+          }
+
+          // Update tampilan debit air total
+          updateWaterFlow();
+        }
+
+        // Tambahkan event listeners
+        slider.addEventListener('input', updateFlow);
+
+        // Inisialisasi nilai awal
+        updateFlow();
+      });
+    }
+
+    // Inisialisasi semua kontrol saat halaman dimuat
+    document.addEventListener('DOMContentLoaded', function () {
+      // Inisialisasi knobs
+      initKnob('hot-water-knob', 0, 60);  // Air panas 0-60°C
+      initKnob('cold-water-knob', 0, 30); // Air dingin 0-30°C
+
+      // Inisialisasi kontrol debit air
+      initFlowControls();
+
+      // Inisialisasi navbar
+      initNavbar();
+
+      // Inisialisasi digital twin panel
+      const digitalTwinBtn = document.getElementById('toggle-digital-twin');
+      const digitalTwinPanel = document.getElementById('digital-twin-panel');
+      const closeDigitalTwinBtn = document.getElementById('close-digital-twin-panel');
+
+      if (digitalTwinBtn && digitalTwinPanel) {
+        digitalTwinBtn.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          // Toggle display of digital twin panel
+          if (digitalTwinPanel.style.display === 'none' || digitalTwinPanel.classList.contains('minimized')) {
+            digitalTwinPanel.style.display = 'block';
+            setTimeout(() => {
+              digitalTwinPanel.classList.remove('minimized');
+              digitalTwinPanel.classList.add('show');
+            }, 10);
+          } else {
+            digitalTwinPanel.classList.remove('show');
+            digitalTwinPanel.classList.add('minimized');
+            setTimeout(() => {
+              digitalTwinPanel.style.display = 'none';
+            }, 300);
+          }
+        });
+
+        // Close button for digital twin panel
+        if (closeDigitalTwinBtn) {
+          closeDigitalTwinBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            digitalTwinPanel.classList.remove('show');
+            digitalTwinPanel.classList.add('minimized');
+            setTimeout(() => {
+              digitalTwinPanel.style.display = 'none';
+            }, 300);
+          });
+        }
+
+        // Close panel when clicking outside
+        document.addEventListener('click', function (e) {
+          if (digitalTwinPanel.style.display === 'block' &&
+            !digitalTwinPanel.contains(e.target) &&
+            e.target !== digitalTwinBtn &&
+            !digitalTwinBtn.contains(e.target)) {
+            digitalTwinPanel.classList.remove('show');
+            digitalTwinPanel.classList.add('minimized');
+            setTimeout(() => {
+              digitalTwinPanel.style.display = 'none';
+            }, 300);
+          }
+        });
+      }
+    });
+
+    // Fungsi untuk inisialisasi navbar
+    function initNavbar() {
+      // Sembunyikan semua panel saat pertama kali dimuat
+      const allPanels = document.querySelectorAll('.control-panel');
+      allPanels.forEach(panel => {
+        panel.classList.add('minimized');
+      });
+      const waterNavBtn = document.getElementById('toggle-water-nav');
+      const sensorNavBtn = document.getElementById('toggle-sensor-nav');
+      const waterPanel = document.getElementById('water-panel');
+      const sensorPanel = document.getElementById('sensor-panel');
+      const closeWaterBtn = document.getElementById('close-water-panel');
+      const closeSensorBtn = document.getElementById('close-sensor-panel');
+      const closeNavbarBtn = document.getElementById('close-navbar');
+      const navbar = document.getElementById('main-navbar');
+
+      // Flag untuk mencegah event ganda
+      let isProcessing = false;
+
+      // Toggle Kontrol Air
+      if (waterNavBtn && waterPanel) {
+        waterNavBtn.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          // Toggle display of water panel
+          if (waterPanel.style.display === 'none' || waterPanel.classList.contains('minimized')) {
+            // Show water panel and hide sensor panel if open
+            waterPanel.style.display = 'block';
+            waterPanel.classList.remove('minimized');
+            sensorPanel.classList.add('minimized');
+            sensorPanel.style.display = 'none';
+
+            // Update button states
+            waterNavBtn.classList.add('active');
+            sensorNavBtn.classList.remove('active');
+
+            // Update icons
+            const waterIcon = waterNavBtn.querySelector('i');
+            if (waterIcon) {
+              waterIcon.classList.remove('fa-tint');
+              waterIcon.classList.add('fa-times');
+            }
+
+            const sensorIcon = sensorNavBtn?.querySelector('i');
+            if (sensorIcon) {
+              sensorIcon.classList.remove('fa-times');
+              sensorIcon.classList.add('fa-chart-line');
+            }
+          } else {
+            // Hide water panel
+            waterPanel.style.display = 'none';
+            waterPanel.classList.add('minimized');
+            waterNavBtn.classList.remove('active');
+
+            // Update icon
+            const waterIcon = waterNavBtn.querySelector('i');
+            if (waterIcon) {
+              waterIcon.classList.remove('fa-times');
+              waterIcon.classList.add('fa-tint');
+            }
+          }
+        });
+      }
+
+      // Toggle Sensor Panel
+      if (sensorNavBtn && sensorPanel) {
+        sensorNavBtn.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          // Toggle display of sensor panel
+          if (sensorPanel.style.display === 'none' || sensorPanel.classList.contains('minimized')) {
+            // First hide the panel to reset any ongoing transitions
+            sensorPanel.style.display = 'none';
+
+            // Use requestAnimationFrame to ensure the display none is processed
+            requestAnimationFrame(() => {
+              // Show the panel
+              sensorPanel.style.display = 'block';
+
+              // Force reflow to ensure the display:block is processed
+              sensorPanel.offsetHeight;
+
+              // Then apply the visible state
+              sensorPanel.classList.remove('minimized');
+
+              // Hide water panel if open
+              waterPanel.classList.add('minimized');
+              waterPanel.style.display = 'none';
+
+              // Update button states
+              sensorNavBtn.classList.add('active');
+              waterNavBtn.classList.remove('active');
+
+              // Update icons
+              const sensorIcon = sensorNavBtn.querySelector('i');
+              if (sensorIcon) {
+                sensorIcon.classList.remove('fa-chart-line');
+                sensorIcon.classList.add('fa-times');
+              }
+
+              const waterIcon = waterNavBtn?.querySelector('i');
+              if (waterIcon) {
+                waterIcon.classList.remove('fa-times');
+                waterIcon.classList.add('fa-tint');
+              }
+            });
+          } else {
+            // Hide sensor panel
+            sensorPanel.classList.add('minimized');
+
+            // After the transition ends, set display to none
+            const handleTransitionEnd = () => {
+              sensorPanel.style.display = 'none';
+              sensorPanel.removeEventListener('transitionend', handleTransitionEnd);
+            };
+
+            sensorPanel.addEventListener('transitionend', handleTransitionEnd);
+
+            sensorNavBtn.classList.remove('active');
+
+            // Update icon
+            const sensorIcon = sensorNavBtn.querySelector('i');
+            if (sensorIcon) {
+              sensorIcon.classList.remove('fa-times');
+              sensorIcon.classList.add('fa-chart-line');
+            }
+          }
+          // Reset processing flag
+          setTimeout(() => { isProcessing = false; }, 10);
+        });
+      }
+
+      // Close buttons
+      if (closeWaterBtn && waterPanel) {
+        closeWaterBtn.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          waterPanel.classList.add('minimized');
+          waterPanel.style.display = 'none';
+          waterNavBtn.classList.remove('active');
+          const icon = waterNavBtn.querySelector('i');
+          icon.classList.remove('fa-times');
+          icon.classList.add('fa-tint');
+          updateNavbarState(false);
+        });
+      }
+
+      if (closeSensorBtn && sensorPanel) {
+        closeSensorBtn.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          sensorPanel.classList.add('minimized');
+          sensorPanel.style.display = 'none';
+          sensorNavBtn.classList.remove('active');
+          const icon = sensorNavBtn.querySelector('i');
+          icon.classList.remove('fa-times');
+          icon.classList.add('fa-chart-line');
+          updateNavbarState(false);
+        });
+      }
+
+      // Close navbar button
+      if (closeNavbarBtn) {
+        closeNavbarBtn.addEventListener('click', function (e) {
+          if (isProcessing) return;
+          isProcessing = true;
+
+          e.preventDefault();
+          e.stopPropagation();
+
+          // Close all panels
+          if (waterPanel) waterPanel.classList.add('minimized');
+          waterPanel.style.display = 'none';
+          if (sensorPanel) sensorPanel.classList.add('minimized');
+          sensorPanel.style.display = 'none';
+
+          // Reset button states
+          if (waterNavBtn) waterNavBtn.classList.remove('active');
+          if (sensorNavBtn) sensorNavBtn.classList.remove('active');
+
+          // Reset icons
+          const waterIcon = waterNavBtn?.querySelector('i');
+          if (waterIcon) {
+            waterIcon.classList.remove('fa-times');
+            waterIcon.classList.add('fa-tint');
+          }
+
+          const sensorIcon = sensorNavBtn?.querySelector('i');
+          if (sensorIcon) {
+            sensorIcon.classList.remove('fa-times');
+            sensorIcon.classList.add('fa-chart-line');
+          }
+
+          // Update navbar state
+          updateNavbarState(false);
+
+          // Reset processing flag
+          setTimeout(() => { isProcessing = false; }, 10);
+        });
+      }
+
+      // Update navbar state function
+      function updateNavbarState(hasPanel) {
+        if (hasPanel) {
+          navbar.classList.add('has-panel');
+        } else {
+          navbar.classList.remove('has-panel');
+        }
+      }
+
+      // Close panels when clicking outside
+      document.addEventListener('click', function (e) {
+        if (isProcessing) return;
+
+        // Cek apakah yang diklik adalah di luar panel air
+        if (waterPanel && waterNavBtn &&
+          !waterPanel.contains(e.target) &&
+          !waterNavBtn.contains(e.target) &&
+          !waterPanel.classList.contains('minimized')) {
+
+          waterPanel.classList.add('minimized');
+          waterPanel.style.display = 'none';
+          waterNavBtn.classList.remove('active');
+          const icon = waterNavBtn.querySelector('i');
+          if (icon) {
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-tint');
+          }
+          updateNavbarState(false);
+        }
+
+        // Cek apakah yang diklik adalah di luar panel sensor
+        if (sensorPanel && sensorNavBtn &&
+          !sensorPanel.contains(e.target) &&
+          !sensorNavBtn.contains(e.target) &&
+          !sensorPanel.classList.contains('minimized')) {
+
+          sensorPanel.classList.add('minimized');
+          sensorPanel.style.display = 'none';
+          sensorNavBtn.classList.remove('active');
+          const icon = sensorNavBtn.querySelector('i');
+          if (icon) {
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-chart-line');
+          }
+          updateNavbarState(false);
+        }
+      });
+    }
+  </script>
+  <script>
+    // Fungsi untuk membuka fullscreen
+    function openFullscreen() {
+      const elem = document.documentElement;
+
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen().catch(err => {
+          console.log(`Error attempting to enable fullscreen: ${err.message}`);
+        });
+      } else if (elem.webkitRequestFullscreen) { // Safari
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) { // IE11
+        elem.msRequestFullscreen();
+      }
+    }
+
+    // Coba masuk fullscreen saat halaman dimuat
+    document.addEventListener('DOMContentLoaded', function () {
+      // Tunggu sebentar sebelum meminta fullscreen
+      setTimeout(openFullscreen, 500);
+
+      // Juga tambahkan event listener untuk klik pertama kalau browser memblok fullscreen otomatis
+      document.addEventListener('click', function fullscreenOnClick() {
+        openFullscreen();
+        document.removeEventListener('click', fullscreenOnClick);
+      });
+    });
+  </script>
+  <!-- ================= BOTTOM NAVBAR ================= -->
+  <nav class="bottom-navbar">
+    <div class="nav-container">
+        <a href="/restroom" class="nav-item">
+            <i class="fa fa-bath"></i>
+            <span>Digital Twin</span>
+        </a>
+        <a href="/restroom/dht11" class="nav-item">
+            <i class="fas fa-thermometer-half"></i>
+            <span>DHT11</span>
+        </a>
+        <a href="/restroom/ds18b20" class="nav-item">
+            <i class="fas fa-temperature-low"></i>
+            <span>DS18B20</span>
+        </a>
+        <a href="/restroom/ldr" class="nav-item">
+            <i class="fas fa-sun"></i>
+            <span>LDR</span>
+        </a>
+        <a href="/restroom/mqtt135" class="nav-item">
+            <i class="fas fa-wind"></i>
+            <span>MQ-135</span>
+        </a>
+        <a href="/restroom/esp32" class="nav-item">
+            <i class="fas fa-microchip"></i>
+            <span>ESP32</span>
+        </a>
+    </div>
+  </nav>
+
+  <style>
+    /* ================= NAVBAR CONTAINER ================= */
+    .bottom-navbar {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(24, 28, 58, 0.72);
+      padding: 14px 18px;
+      border-radius: 50px;
+      backdrop-filter: blur(18px);
+      box-shadow:
+        0 14px 34px rgba(88, 90, 255, 0.18),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+      z-index: 9999;
+    }
+
+    /* ================= NAV ITEMS ================= */
+    .nav-container {
+      display: flex;
+      gap: 14px;
+    }
+
+    .nav-item {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: #dfe3ff;
+      padding: 12px 18px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .nav-item i {
+      font-size: 1.1rem;
+    }
+
+    /* ================= HOVER ================= */
+    .nav-item:hover {
+      background: linear-gradient(135deg,
+          rgba(108, 120, 255, 0.22),
+          rgba(156, 120, 255, 0.18));
+      transform: translateY(-2px);
+    }
+
+    /* ================= ACTIVE (BLUE → PURPLE GRADIENT) ================= */
+    .nav-item.active {
+      color: #ffffff;
+      background: linear-gradient(135deg,
+          #6c7bff 0%,
+          #8f7bff 50%,
+          #b47bff 100%);
+      box-shadow:
+        0 0 8px rgba(140, 130, 255, 0.45),
+        0 10px 26px rgba(170, 130, 255, 0.35);
+    }
+
+    /* Icon glow halus */
+    .nav-item.active i {
+      text-shadow:
+        0 0 6px rgba(255, 255, 255, 0.75),
+        0 0 14px rgba(170, 140, 255, 0.65);
+    }
+
+    /* Indicator kecil & soft */
+    .nav-item.active::before {
+      content: "";
+      position: absolute;
+      top: -5px;
+      width: 6px;
+      height: 6px;
+      background: #c4b5ff;
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(196, 181, 255, 0.9);
+    }
+
+    /* ================= RESPONSIVE ================= */
+    @media (max-width: 600px) {
+      .nav-item {
+        padding: 10px 14px;
+        font-size: 0.7rem;
+      }
+
+      .nav-item i {
+        font-size: 1rem;
+      }
+    }
+  </style>
+
+  <script>
+    /* ================= ACTIVE PAGE DETECTION ================= */
+    document.addEventListener("DOMContentLoaded", function () {
+      const currentPath = window.location.pathname.replace(/\/$/, "");
+      const navItems = document.querySelectorAll(".nav-item");
+
+      navItems.forEach(item => {
+        const href = item.getAttribute("href");
+        if (currentPath === href || currentPath.startsWith(href + "/")) {
+          item.classList.add("active");
+        }
+      });
+    });
+  </script>
+
+</body>
+
+</html>

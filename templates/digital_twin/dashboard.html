@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Digital Twin Monitoring Panel</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background: #0d0d0d;
+        font-family: Arial, sans-serif;
+        overflow: hidden;
+        height: 100vh;
+      }
+
+      .container {
+        display: flex;
+        width: 100%;
+        height: 100vh;
+      }
+
+      /* PANEL KIRI (30%) */
+      .left-panel {
+        width: 30%;
+        background: #111;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: stretch;
+        box-sizing: border-box;
+        border-right: 2px solid #222;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      /* GAMBAR ALAT FULL HEIGHT */
+      .device-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      /* PANEL KANAN */
+      .right-panel {
+        width: 70%;
+        position: relative;
+        justify-content: center;
+        background: #000;
+        overflow: hidden;
+      }
+
+      /* GAMBAR RUANGAN FULL AREA */
+      .room-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        opacity: 0.92;
+        transform: scaleX(-1);
+      }
+
+      /* STATUS INDICATOR */
+      .status-indicator {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 10px 20px;
+        border-radius: 8px;
+        color: white;
+        font-size: 14px;
+        z-index: 100;
+      }
+
+      .status-indicator.connected {
+        border-left: 4px solid #39e06b;
+      }
+
+      .status-indicator.disconnected {
+        border-left: 4px solid #ff4747;
+      }
+
+      /* ====== ROOM OVERLAY IN LEFT PANEL ====== */
+      .room-overlay {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+
+        background: #03a9f4;
+        padding: 15px 20px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+
+        color: white;
+        font-weight: bold;
+
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      }
+
+      /* Row for the top inputs */
+      .room-overlay .top-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .room-overlay .top-item {
+        flex: 1;
+        text-align: center;
+      }
+
+      /* Row for the bottom circular indicators */
+      .room-overlay .bottom-row {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 5px;
+      }
+
+      .room-overlay .circle-box {
+        text-align: center;
+      }
+
+      .room-overlay .circle {
+        width: 70px;
+        height: 70px;
+        background: white;
+        border-radius: 50%;
+        margin: 5px auto 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        color: #03a9f4;
+        font-weight: bold;
+      }
+
+      .sensor-box {
+        width: 100%;
+        height: 25px;
+        margin-top: 5px;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        font-size: 15px;
+        text-align: center;
+        line-height: 25px;
+      }
+
+      /* LED / tombol overlay pada panel kiri */
+      .led-controls {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 40.5%;
+        display: flex;
+        gap: 31px;
+        z-index: 30;
+        align-items: center;
+        pointer-events: auto;
+      }
+
+      .led-button {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        box-shadow: inset 0 -6px 12px rgba(0, 0, 0, 0.35);
+        border: 3px solid rgba(0, 0, 0, 0.35);
+        display: inline-block;
+        cursor: pointer;
+        transition: all 250ms ease;
+        outline: none;
+        position: relative;
+      }
+
+      .led-button:hover:not(:disabled) {
+        transform: scale(1.05);
+      }
+
+      .led-button:active:not(:disabled) {
+        transform: scale(0.98);
+      }
+
+      .led-button:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+      }
+
+      /* OFF state - dark */
+      .led-button.red {
+        background: #8b1b1b;
+        border-color: #5a1111;
+      }
+      .led-button.yellow {
+        background: #8b7a1b;
+        border-color: #5a4f11;
+      }
+      .led-button.green {
+        background: #1f6b2a;
+        border-color: #14451b;
+      }
+
+      /* ON state - bright + glow + pulse animation */
+      .led-button.on.red {
+        background: radial-gradient(circle, #ff6b6b 0%, #ff4747 100%);
+        box-shadow: 
+          0 0 25px 8px rgba(255, 71, 71, 0.5),
+          inset 0 0 10px rgba(255, 255, 255, 0.3);
+        border-color: #ff8888;
+        animation: pulse-red 2s ease-in-out infinite;
+      }
+      .led-button.on.yellow {
+        background: radial-gradient(circle, #ffe066 0%, #ffd24a 100%);
+        box-shadow: 
+          0 0 25px 8px rgba(255, 210, 74, 0.5),
+          inset 0 0 10px rgba(255, 255, 255, 0.3);
+        border-color: #ffdd88;
+        animation: pulse-yellow 2s ease-in-out infinite;
+      }
+      .led-button.on.green {
+        background: radial-gradient(circle, #5bff8f 0%, #39e06b 100%);
+        box-shadow: 
+          0 0 25px 8px rgba(57, 224, 107, 0.5),
+          inset 0 0 10px rgba(255, 255, 255, 0.3);
+        border-color: #66ff99;
+        animation: pulse-green 2s ease-in-out infinite;
+      }
+
+      /* Pulse animations */
+      @keyframes pulse-red {
+        0%, 100% { box-shadow: 0 0 25px 8px rgba(255, 71, 71, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.3); }
+        50% { box-shadow: 0 0 35px 12px rgba(255, 71, 71, 0.7), inset 0 0 15px rgba(255, 255, 255, 0.4); }
+      }
+      
+      @keyframes pulse-yellow {
+        0%, 100% { box-shadow: 0 0 25px 8px rgba(255, 210, 74, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.3); }
+        50% { box-shadow: 0 0 35px 12px rgba(255, 210, 74, 0.7), inset 0 0 15px rgba(255, 255, 255, 0.4); }
+      }
+      
+      @keyframes pulse-green {
+        0%, 100% { box-shadow: 0 0 25px 8px rgba(57, 224, 107, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.3); }
+        50% { box-shadow: 0 0 35px 12px rgba(57, 224, 107, 0.7), inset 0 0 15px rgba(255, 255, 255, 0.4); }
+      }
+
+      /* Focus outlines for accessibility */
+      .led-button:focus {
+        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.3),
+          0 0 10px rgba(255, 255, 255, 0.2);
+      }
+      
+      .led-button.on:focus {
+        outline: 3px solid rgba(255, 255, 255, 0.5);
+        outline-offset: 3px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <!-- ---- PANEL KIRI: GAMBAR PERANGKAT ---- -->
+      <div class="left-panel">
+        <img
+          src="/static/assets/panel_mati.png"
+          class="device-img"
+          alt="Device Image"
+        />
+        
+        <!-- Status Indicator -->
+        <div class="status-indicator disconnected" id="status-indicator">
+          ⏳ Menghubungkan...
+        </div>
+
+        <div class="led-controls" aria-hidden="false">
+          <button
+            class="led-button red"
+            id="led-red"
+            aria-pressed="false"
+            aria-label="LED Merah - AC"
+            title="AC"
+            disabled
+          ></button>
+          <button
+            class="led-button yellow"
+            id="led-yellow"
+            aria-pressed="false"
+            aria-label="LED Kuning - Lampu"
+            title="Lampu"
+            disabled
+          ></button>
+          <button
+            class="led-button green"
+            id="led-green"
+            aria-pressed="false"
+            aria-label="LED Hijau - Panel"
+            title="Panel"
+            disabled
+          ></button>
+        </div>
+
+        <div class="room-overlay">
+          <div class="top-row">
+            <div class="top-item">
+              Suhu
+              <br />
+              <div class="sensor-box" id="temp">--</div>
+            </div>
+
+            <div class="top-item">
+              Tekanan
+              <br />
+              <div class="sensor-box" id="pressure">--</div>
+            </div>
+
+            <div class="top-item">
+              Ketinggian
+              <br />
+              <div class="sensor-box" id="alt">--</div>
+            </div>
+          </div>
+
+          <div class="bottom-row">
+            <div class="circle-box">
+              Total Daya
+              <div class="circle" id="total-power">--</div>
+            </div>
+
+            <div class="circle-box">
+              Biaya Listrik
+              <div class="circle" id="cost">--</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---- PANEL KANAN: ROOM SIMULATION ---- -->
+      <div class="right-panel">
+        <img
+          src="/static/assets/Semua Menyala.png"
+          class="room-image"
+          id="room-image"
+        />
+      </div>
+    </div>
+
+    <script>
+      /* ---------- MAPPING LED KE RELAY DEVICE ---------- */
+      const LED_TO_RELAY = {
+        'led-red': 'ac',       // LED Merah = AC
+        'led-yellow': 'lampu', // LED Kuning = Lampu
+        'led-green': 'panel'   // LED Hijau = Panel
+      };
+
+      let isConnected = false;
+
+      /* ---------- UPDATE STATUS INDICATOR ---------- */
+      function updateStatusIndicator(connected) {
+        const indicator = document.getElementById('status-indicator');
+        const buttons = document.querySelectorAll('.led-button');
+        
+        isConnected = connected;
+        
+        if (connected) {
+          indicator.className = 'status-indicator connected';
+          indicator.innerHTML = '✅ Terhubung ke Pico';
+          buttons.forEach(btn => btn.disabled = false);
+        } else {
+          indicator.className = 'status-indicator disconnected';
+          indicator.innerHTML = '❌ Tidak terhubung';
+          buttons.forEach(btn => btn.disabled = true);
+        }
+      }
+
+      /* ---------- KONTROL RELAY VIA FLASK API ---------- */
+      async function controlRelay(device, state) {
+        const stateValue = state ? 1 : 0;
+        
+        try {
+          const response = await fetch(`/api/pico1/relay/${device}/${stateValue}`);
+          
+          if (response.ok) {
+            const data = await response.json();
+            console.log(`✅ Relay ${device} berhasil diset ke ${state ? 'ON' : 'OFF'}`, data);
+            return true;
+          } else {
+            const error = await response.json();
+            console.error(`❌ Error mengontrol relay ${device}:`, error);
+            return false;
+          }
+        } catch (error) {
+          console.error(`❌ Gagal menghubungi server Flask:`, error);
+          return false;
+        }
+      }
+
+      /* ---------- FETCH DATA DARI PICO VIA FLASK API ---------- */
+      async function fetchPicoData() {
+        try {
+          const response = await fetch('/api/pico1/data');
+          
+          if (!response.ok) {
+            throw new Error('Failed to fetch data');
+          }
+          
+          const data = await response.json();
+          
+          // Update status indicator
+          updateStatusIndicator(true);
+          
+          // Update sensor data dari Pico
+          if (data.suhu !== undefined) {
+            document.getElementById("temp").innerText = data.suhu.toFixed(2) + " °C";
+          }
+          if (data.tekanan !== undefined) {
+            document.getElementById("pressure").innerText = (data.tekanan / 100).toFixed(2) + " hPa";
+          }
+          if (data.ketinggian !== undefined) {
+            document.getElementById("alt").innerText = data.ketinggian.toFixed(2) + " m";
+          }
+          
+          // Hitung total daya dari 3 panel
+          let totalPower = 0;
+          if (data.panel1 && data.panel1.daya) totalPower += data.panel1.daya;
+          if (data.panel2 && data.panel2.daya) totalPower += data.panel2.daya;
+          if (data.panel3 && data.panel3.daya) totalPower += data.panel3.daya;
+          
+          document.getElementById("total-power").innerText = totalPower.toFixed(1) + " W";
+          
+          // Hitung total biaya
+          let totalCost = 0;
+          if (data.panel1 && data.panel1.biaya) totalCost += data.panel1.biaya;
+          if (data.panel2 && data.panel2.biaya) totalCost += data.panel2.biaya;
+          if (data.panel3 && data.panel3.biaya) totalCost += data.panel3.biaya;
+          
+          document.getElementById("cost").innerText = "Rp " + totalCost.toFixed(0);
+          
+          // Update status LED sesuai relay dari Pico
+          updateLedFromRelay(data.relay);
+          
+          // Update gambar ruangan sesuai status relay
+          updateRoomImage(data.relay);
+          
+          return data;
+        } catch (error) {
+          console.log("⏳ Menunggu koneksi ke Pico...", error);
+          updateStatusIndicator(false);
+          return null;
+        }
+      }
+
+      /* ---------- UPDATE LED BERDASARKAN STATUS RELAY ---------- */
+      function updateLedFromRelay(relayData) {
+        if (!relayData) return;
+        
+        Object.keys(LED_TO_RELAY).forEach(ledId => {
+          const device = LED_TO_RELAY[ledId];
+          const btn = document.getElementById(ledId);
+          const isOn = relayData[device] === 1;
+          
+          if (btn) {
+            if (isOn) {
+              btn.classList.add('on');
+              btn.setAttribute('aria-pressed', 'true');
+            } else {
+              btn.classList.remove('on');
+              btn.setAttribute('aria-pressed', 'false');
+            }
+          }
+        });
+      }
+
+      /* ---------- UPDATE GAMBAR RUANGAN SESUAI STATUS RELAY ---------- */
+      function updateRoomImage(relayData) {
+        if (!relayData) return;
+        
+        const roomImg = document.getElementById("room-image");
+        if (!roomImg) return;
+        
+        // Tentukan gambar berdasarkan kombinasi relay
+        const ac = relayData.ac === 1;
+        const lampu = relayData.lampu === 1;
+        const panel = relayData.panel === 1;
+        
+        let imageName = "mati semua .png"; // default
+        
+        if (ac && lampu && panel) {
+          imageName = "Semua Menyala.png";
+        } else if (!ac && !lampu && !panel) { //semua mati
+          imageName = "mati semua .png";
+        } else if (lampu && !ac && !panel) { //2
+          imageName = "2 .png";
+        } else if (ac && !lampu && !panel) { //1 saja
+          imageName = "1 .png";
+        } else if (panel && !ac && !lampu) { //3
+          imageName = "3 .png";
+        } else if (lampu && ac && !panel) {
+          imageName = "1 + 2.png";
+        } else if (lampu && panel && !ac) {
+          imageName = "2 + 3 .png";
+        } else if (ac && panel && !lampu) {
+          imageName = "1 + 3.png";
+        }
+        
+        roomImg.src = `/static/assets/${imageName}`;
+      }
+
+      /* ---------- LED BUTTONS (MERAH / KUNING / HIJAU) ---------- */
+      function initLedControls() {
+        const buttons = document.querySelectorAll(".led-button");
+
+        async function toggleLed(btn) {
+          if (!isConnected) {
+            alert('Tidak terhubung ke Pico. Pastikan perangkat aktif.');
+            return;
+          }
+
+          const device = LED_TO_RELAY[btn.id];
+          const currentState = btn.classList.contains('on');
+          const newState = !currentState;
+          
+          // Optimistic UI update
+          if (newState) {
+            btn.classList.add('on');
+            btn.setAttribute('aria-pressed', 'true');
+          } else {
+            btn.classList.remove('on');
+            btn.setAttribute('aria-pressed', 'false');
+          }
+          
+          // Kirim perintah ke Flask API -> Pico
+          const success = await controlRelay(device, newState);
+          
+          if (!success) {
+            // Rollback jika gagal
+            if (newState) {
+              btn.classList.remove('on');
+              btn.setAttribute('aria-pressed', 'false');
+            } else {
+              btn.classList.add('on');
+              btn.setAttribute('aria-pressed', 'true');
+            }
+            alert(`Gagal mengontrol ${device}. Pastikan Pico terhubung.`);
+          }
+        }
+
+        buttons.forEach((btn) => {
+          btn.addEventListener("click", () => toggleLed(btn));
+
+          // keyboard accessibility: Space or Enter toggles
+          btn.addEventListener("keydown", (ev) => {
+            if (ev.key === " " || ev.key === "Enter") {
+              ev.preventDefault();
+              toggleLed(btn);
+            }
+          });
+        });
+      }
+
+      // Initialize LED controls after DOM ready
+      initLedControls();
+      
+      // Fetch data dari Pico setiap 2 detik via Flask API
+      setInterval(fetchPicoData, 2000);
+      fetchPicoData(); // Panggil sekali saat load
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Monitoring Penggunaan Listrik BBPMPV BOE Malang</title>
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="../static/style.css" />
+    <!-- <script src="https://unpkg.com/paho-mqtt/mqttws31.min.js"></script> -->
+    <script src="../static/script.js"></script>
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>MONITORING PENGGUNAAN LISTRIK BBPPMPV BOE MALANG</h1>
+
+      <div class="grid">
+        <!-- Card 1 - Yellow -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon icon-yellow">
+              <i class="fa-solid fa-building"></i>
+            </div>
+            <div class="card-title">Gedung Pusat</div>
+          </div>
+          <div class="phase-table">
+            <div class="phase-header">
+              <div class="phase-col"></div>
+              <div class="phase-col">Tegangan</div>
+              <div class="phase-col">Arus</div>
+              <div class="phase-col">Daya</div>
+              <div class="phase-col">Energi</div>
+            </div>
+
+            <div class="phase-row">
+              <div class="phase-col"><span class="dot red"></span> Fasa R</div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-blue"
+                  data-dept="department1"
+                  data-phase="r"
+                  data-metric="voltage"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-cyan"
+                  data-dept="department1"
+                  data-phase="r"
+                  data-metric="current"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-green"
+                  data-dept="department1"
+                  data-phase="r"
+                  data-metric="power"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-yellow"
+                  data-dept="department1"
+                  data-phase="r"
+                  data-metric="energy"
+                ></div>
+              </div>
+            </div>
+
+            <div class="phase-row">
+              <div class="phase-col">
+                <span class="dot yellow"></span> Fasa S
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-blue"
+                  data-dept="department1"
+                  data-phase="s"
+                  data-metric="voltage"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-cyan"
+                  data-dept="department1"
+                  data-phase="s"
+                  data-metric="current"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-green"
+                  data-dept="department1"
+                  data-phase="s"
+                  data-metric="power"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-yellow"
+                  data-dept="department1"
+                  data-phase="s"
+                  data-metric="energy"
+                ></div>
+              </div>
+            </div>
+
+            <div class="phase-row">
+              <div class="phase-col"><span class="dot blue"></span> Fasa T</div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-blue"
+                  data-dept="department1"
+                  data-phase="t"
+                  data-metric="voltage"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-cyan"
+                  data-dept="department1"
+                  data-phase="t"
+                  data-metric="current"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-green"
+                  data-dept="department1"
+                  data-phase="t"
+                  data-metric="power"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-yellow"
+                  data-dept="department1"
+                  data-phase="t"
+                  data-metric="energy"
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <div class="footer-item">
+              <span
+                class="footer-icon"
+                data-dept="department1"
+                data-metric="total_energy"
+                >⚡</span
+              >
+              <span>RP. 10.000.000</span>
+            </div>
+            <div class="footer-item">
+              <span
+                class="footer-icon"
+                data-dept="department1"
+                data-metric="total_cost"
+                >⚡</span
+              >
+              <span>RP. 10.000.000</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2 - Blue -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon icon-orange">
+              <i class="fa-solid fa-building"></i>
+            </div>
+            <div class="card-title">Departemen Teknologi Informasi</div>
+          </div>
+          <div class="phase-table">
+            <div class="phase-header">
+              <div class="phase-col"></div>
+              <div class="phase-col">Tegangan</div>
+              <div class="phase-col">Arus</div>
+              <div class="phase-col">Daya</div>
+              <div class="phase-col">Energi</div>
+            </div>
+
+            <div class="phase-row">
+              <div class="phase-col"><span class="dot red"></span> Fasa R</div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-blue"
+                  data-dept="department2"
+                  data-phase="r"
+                  data-metric="voltage"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-cyan"
+                  data-dept="department2"
+                  data-phase="r"
+                  data-metric="current"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-green"
+                  data-dept="department2"
+                  data-phase="r"
+                  data-metric="power"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-yellow"
+                  data-dept="department2"
+                  data-phase="r"
+                  data-metric="energy"
+                ></div>
+              </div>
+            </div>
+
+            <div class="phase-row">
+              <div class="phase-col">
+                <span class="dot yellow"></span> Fasa S
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-blue"
+                  data-dept="department2"
+                  data-phase="s"
+                  data-metric="voltage"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-cyan"
+                  data-dept="department2"
+                  data-phase="s"
+                  data-metric="current"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-green"
+                  data-dept="department2"
+                  data-phase="s"
+                  data-metric="power"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-yellow"
+                  data-dept="department2"
+                  data-phase="s"
+                  data-metric="energy"
+                ></div>
+              </div>
+            </div>
+
+            <div class="phase-row">
+              <div class="phase-col"><span class="dot blue"></span> Fasa T</div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-blue"
+                  data-dept="department2"
+                  data-phase="t"
+                  data-metric="voltage"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-cyan"
+                  data-dept="department2"
+                  data-phase="t"
+                  data-metric="current"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-green"
+                  data-dept="department2"
+                  data-phase="t"
+                  data-metric="power"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-yellow"
+                  data-dept="department2"
+                  data-phase="t"
+                  data-metric="energy"
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <div class="footer-item">
+              <span
+                class="footer-icon"
+                data-dept="department2"
+                data-metric="total_energy"
+                >⚡</span
+              >
+              <span>RP. 10.000.000</span>
+            </div>
+            <div class="footer-item">
+              <span
+                class="footer-icon"
+                data-dept="department2"
+                data-metric="total_cost"
+                >⚡</span
+              >
+              <span>RP. 10.000.000</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3 - Red -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon icon-red">
+              <i class="fa-solid fa-building"></i>
+            </div>
+            <div class="card-title">Departemen Elektronika</div>
+          </div>
+          <div class="phase-table">
+            <div class="phase-header">
+              <div class="phase-col"></div>
+              <div class="phase-col">Tegangan</div>
+              <div class="phase-col">Arus</div>
+              <div class="phase-col">Daya</div>
+              <div class="phase-col">Energi</div>
+            </div>
+
+            <div class="phase-row">
+              <div class="phase-col"><span class="dot red"></span> Fasa R</div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-blue"
+                  data-dept="department3"
+                  data-phase="r"
+                  data-metric="voltage"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-cyan"
+                  data-dept="department3"
+                  data-phase="r"
+                  data-metric="current"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-green"
+                  data-dept="department3"
+                  data-phase="r"
+                  data-metric="power"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-yellow"
+                  data-dept="department3"
+                  data-phase="r"
+                  data-metric="energy"
+                ></div>
+              </div>
+            </div>
+
+            <div class="phase-row">
+              <div class="phase-col">
+                <span class="dot yellow"></span> Fasa S
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-blue"
+                  data-dept="department3"
+                  data-phase="s"
+                  data-metric="voltage"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-cyan"
+                  data-dept="department3"
+                  data-phase="s"
+                  data-metric="current"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-green"
+                  data-dept="department3"
+                  data-phase="s"
+                  data-metric="power"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-yellow"
+                  data-dept="department3"
+                  data-phase="s"
+                  data-metric="energy"
+                ></div>
+              </div>
+            </div>
+
+            <div class="phase-row">
+              <div class="phase-col"><span class="dot blue"></span> Fasa T</div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-blue"
+                  data-dept="department3"
+                  data-phase="t"
+                  data-metric="voltage"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-cyan"
+                  data-dept="department3"
+                  data-phase="t"
+                  data-metric="current"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-green"
+                  data-dept="department3"
+                  data-phase="t"
+                  data-metric="power"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-yellow"
+                  data-dept="department3"
+                  data-phase="t"
+                  data-metric="energy"
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <div class="footer-item">
+              <span
+                class="footer-icon"
+                data-dept="department3"
+                data-metric="total_energy"
+                >⚡</span
+              >
+              <span>RP. 10.000.000</span>
+            </div>
+            <div class="footer-item">
+              <span
+                class="footer-icon"
+                data-dept="department3"
+                data-metric="total_cost"
+                >⚡</span
+              >
+              <span>RP. 10.000.000</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4 - Cyan -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon icon-cyan">
+              <i class="fa-solid fa-building"></i>
+            </div>
+            <div class="card-title">Departemen Otomotif</div>
+          </div>
+          <div class="phase-table">
+            <div class="phase-header">
+              <div class="phase-col"></div>
+              <div class="phase-col">Tegangan</div>
+              <div class="phase-col">Arus</div>
+              <div class="phase-col">Daya</div>
+              <div class="phase-col">Energi</div>
+            </div>
+
+            <div class="phase-row">
+              <div class="phase-col"><span class="dot red"></span> Fasa R</div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-blue"
+                  data-dept="department4"
+                  data-phase="r"
+                  data-metric="voltage"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-cyan"
+                  data-dept="department4"
+                  data-phase="r"
+                  data-metric="current"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-green"
+                  data-dept="department4"
+                  data-phase="r"
+                  data-metric="power"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-yellow"
+                  data-dept="department4"
+                  data-phase="r"
+                  data-metric="energy"
+                ></div>
+              </div>
+            </div>
+
+            <div class="phase-row">
+              <div class="phase-col">
+                <span class="dot yellow"></span> Fasa S
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-blue"
+                  data-dept="department4"
+                  data-phase="s"
+                  data-metric="voltage"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-cyan"
+                  data-dept="department4"
+                  data-phase="s"
+                  data-metric="current"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-green"
+                  data-dept="department4"
+                  data-phase="s"
+                  data-metric="power"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-yellow"
+                  data-dept="department4"
+                  data-phase="s"
+                  data-metric="energy"
+                ></div>
+              </div>
+            </div>
+
+            <div class="phase-row">
+              <div class="phase-col"><span class="dot blue"></span> Fasa T</div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-blue"
+                  data-dept="department4"
+                  data-phase="t"
+                  data-metric="voltage"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-cyan"
+                  data-dept="department4"
+                  data-phase="t"
+                  data-metric="current"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-green"
+                  data-dept="department4"
+                  data-phase="t"
+                  data-metric="power"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-yellow"
+                  data-dept="department4"
+                  data-phase="t"
+                  data-metric="energy"
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <div class="footer-item">
+              <span
+                class="footer-icon"
+                data-dept="department4"
+                data-metric="total_energy"
+                >⚡</span
+              >
+              <span>RP. 10.000.000</span>
+            </div>
+            <div class="footer-item">
+              <span
+                class="footer-icon"
+                data-dept="department4"
+                data-metric="total_cost"
+                >⚡</span
+              >
+              <span>RP. 10.000.000</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 5 - Orange -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon icon-blue">
+              <i class="fa-solid fa-building"></i>
+            </div>
+            <div class="card-title">Departemen Logam & Mesin</div>
+          </div>
+          <div class="phase-table">
+            <div class="phase-header">
+              <div class="phase-col"></div>
+              <div class="phase-col">Tegangan</div>
+              <div class="phase-col">Arus</div>
+              <div class="phase-col">Daya</div>
+              <div class="phase-col">Energi</div>
+            </div>
+
+            <div class="phase-row">
+              <div class="phase-col"><span class="dot red"></span> Fasa R</div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-blue"
+                  data-dept="department5"
+                  data-phase="r"
+                  data-metric="voltage"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-cyan"
+                  data-dept="department5"
+                  data-phase="r"
+                  data-metric="current"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-green"
+                  data-dept="department5"
+                  data-phase="r"
+                  data-metric="power"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-yellow"
+                  data-dept="department5"
+                  data-phase="r"
+                  data-metric="energy"
+                ></div>
+              </div>
+            </div>
+
+            <div class="phase-row">
+              <div class="phase-col">
+                <span class="dot yellow"></span> Fasa S
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-blue"
+                  data-dept="department5"
+                  data-phase="s"
+                  data-metric="voltage"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-cyan"
+                  data-dept="department5"
+                  data-phase="s"
+                  data-metric="current"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-green"
+                  data-dept="department5"
+                  data-phase="s"
+                  data-metric="power"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-yellow"
+                  data-dept="department5"
+                  data-phase="s"
+                  data-metric="energy"
+                ></div>
+              </div>
+            </div>
+
+            <div class="phase-row">
+              <div class="phase-col"><span class="dot blue"></span> Fasa T</div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-blue"
+                  data-dept="department5"
+                  data-phase="t"
+                  data-metric="voltage"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-cyan"
+                  data-dept="department5"
+                  data-phase="t"
+                  data-metric="current"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-green"
+                  data-dept="department5"
+                  data-phase="t"
+                  data-metric="power"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-yellow"
+                  data-dept="department5"
+                  data-phase="t"
+                  data-metric="energy"
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <div class="footer-item">
+              <span
+                class="footer-icon"
+                data-dept="department5"
+                data-metric="total_energy"
+                >⚡</span
+              >
+              <span>RP. 10.000.000</span>
+            </div>
+            <div class="footer-item">
+              <span
+                class="footer-icon"
+                data-dept="department5"
+                data-metric="total_cost"
+                >⚡</span
+              >
+              <span>RP. 10.000.000</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 6 - Green -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon icon-green">
+              <i class="fa-solid fa-building"></i>
+            </div>
+            <div class="card-title">Departemen Manajemen</div>
+          </div>
+          <div class="phase-table">
+            <div class="phase-header">
+              <div class="phase-col"></div>
+              <div class="phase-col">Tegangan</div>
+              <div class="phase-col">Arus</div>
+              <div class="phase-col">Daya</div>
+              <div class="phase-col">Energi</div>
+            </div>
+
+            <div class="phase-row">
+              <div class="phase-col"><span class="dot red"></span> Fasa R</div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-blue"
+                  data-dept="department6"
+                  data-phase="r"
+                  data-metric="voltage"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-cyan"
+                  data-dept="department6"
+                  data-phase="r"
+                  data-metric="current"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-green"
+                  data-dept="department6"
+                  data-phase="r"
+                  data-metric="power"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-yellow"
+                  data-dept="department6"
+                  data-phase="r"
+                  data-metric="energy"
+                ></div>
+              </div>
+            </div>
+
+            <div class="phase-row">
+              <div class="phase-col">
+                <span class="dot yellow"></span> Fasa S
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-blue"
+                  data-dept="department6"
+                  data-phase="s"
+                  data-metric="voltage"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-cyan"
+                  data-dept="department6"
+                  data-phase="s"
+                  data-metric="current"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-green"
+                  data-dept="department6"
+                  data-phase="s"
+                  data-metric="power"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-yellow"
+                  data-dept="department6"
+                  data-phase="s"
+                  data-metric="energy"
+                ></div>
+              </div>
+            </div>
+
+            <div class="phase-row">
+              <div class="phase-col"><span class="dot blue"></span> Fasa T</div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-blue"
+                  data-dept="department6"
+                  data-phase="t"
+                  data-metric="voltage"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-cyan"
+                  data-dept="department6"
+                  data-phase="t"
+                  data-metric="current"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-green"
+                  data-dept="department6"
+                  data-phase="t"
+                  data-metric="power"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-yellow"
+                  data-dept="department6"
+                  data-phase="t"
+                  data-metric="energy"
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <div class="footer-item">
+              <span
+                class="footer-icon"
+                data-dept="department6"
+                data-metric="total_energy"
+                >⚡</span
+              >
+              <span>RP. 10.000.000</span>
+            </div>
+            <div class="footer-item">
+              <span
+                class="footer-icon"
+                data-dept="department6"
+                data-metric="total_cost"
+                >⚡</span
+              >
+              <span>RP. 10.000.000</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 7 - Brown -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon icon-brown">
+              <i class="fa-solid fa-building"></i>
+            </div>
+            <div class="card-title">Departemen Sipil</div>
+          </div>
+          <div class="phase-table">
+            <div class="phase-header">
+              <div class="phase-col"></div>
+              <div class="phase-col">Tegangan</div>
+              <div class="phase-col">Arus</div>
+              <div class="phase-col">Daya</div>
+              <div class="phase-col">Energi</div>
+            </div>
+
+            <div class="phase-row">
+              <div class="phase-col"><span class="dot red"></span> Fasa R</div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-blue"
+                  data-dept="department7"
+                  data-phase="r"
+                  data-metric="voltage"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-cyan"
+                  data-dept="department7"
+                  data-phase="r"
+                  data-metric="current"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-green"
+                  data-dept="department7"
+                  data-phase="r"
+                  data-metric="power"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-yellow"
+                  data-dept="department7"
+                  data-phase="r"
+                  data-metric="energy"
+                ></div>
+              </div>
+            </div>
+
+            <div class="phase-row">
+              <div class="phase-col">
+                <span class="dot yellow"></span> Fasa S
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-blue"
+                  data-dept="department7"
+                  data-phase="s"
+                  data-metric="voltage"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-cyan"
+                  data-dept="department7"
+                  data-phase="s"
+                  data-metric="current"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-green"
+                  data-dept="department7"
+                  data-phase="s"
+                  data-metric="power"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-yellow"
+                  data-dept="department7"
+                  data-phase="s"
+                  data-metric="energy"
+                ></div>
+              </div>
+            </div>
+
+            <div class="phase-row">
+              <div class="phase-col"><span class="dot blue"></span> Fasa T</div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-blue"
+                  data-dept="department7"
+                  data-phase="t"
+                  data-metric="voltage"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-cyan"
+                  data-dept="department7"
+                  data-phase="t"
+                  data-metric="current"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-green"
+                  data-dept="department7"
+                  data-phase="t"
+                  data-metric="power"
+                ></div>
+              </div>
+              <div class="phase-col">
+                <div
+                  class="bar bar-yellow"
+                  data-dept="department7"
+                  data-phase="t"
+                  data-metric="energy"
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <div class="footer-item">
+              <span
+                class="footer-icon"
+                data-dept="department7"
+                data-metric="total_energy"
+                >⚡</span
+              >
+              <span>RP. 10.000.000</span>
+            </div>
+            <div class="footer-item">
+              <span
+                class="footer-icon"
+                data-dept="department7"
+                data-metric="total_cost"
+                >⚡</span
+              >
+              <span>RP. 10.000.000</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary Card -->
+        <div class="card summary-card">
+          <div class="summary-header">
+            Total Bulan 
+            <span class="summary-month"></span>
+            <span class="summary-year"></span>
+          </div>
+          <div class="summary-content">
+            <div class="summary-item">
+              <div class="summary-label">Penggunaan Energi</div>
+              <div class="summary-value">--- kWh</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-label">Biaya</div>
+              <div class="summary-value">Rp ---</div>
+            </div>
+          </div>
+          <div class="predict-content">
+            <div class="predict-item">
+              <div class="summary-label">Prediksi Biaya Listrik Bulan Selanjutnya</div>
+              <div class="summary-value" id="predict-value">Rp ---</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
